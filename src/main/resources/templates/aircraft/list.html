@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aircraft - SkyLink Ops</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}"><link rel="stylesheet" th:href="@{/css/sidebar.css}"><link rel="stylesheet" th:href="@{/css/topbar.css}"><link rel="stylesheet" th:href="@{/css/aircraft.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+<body>
+<div class="app-wrapper">
+    <th:block th:replace="~{fragments/sidebar :: sidebar('aircraft')}"></th:block><div id="sidebarOverlay" class="sidebar-overlay"></div>
+    <div class="main-content"><th:block th:replace="~{fragments/topbar :: topbar('Aircraft')}"></th:block><th:block th:replace="~{fragments/flash :: flash}"></th:block>
+        <main class="page-content">
+            <div class="sky-breadcrumb"><a th:href="@{/dashboard}">Dashboard</a><span class="sep material-symbols-outlined">chevron_right</span><span>Aircraft</span></div>
+            <div class="page-header"><div><h1 class="page-header__title">Fleet Management</h1><p class="page-header__sub"><span th:text="${totalCount}">0</span> aircraft registered in the fleet</p></div><sec:authorize access="hasRole('ADMIN')"><a th:href="@{/aircraft/add}" class="btn-sky-primary"><span class="material-symbols-outlined">add</span>Add Aircraft</a></sec:authorize></div>
+            <div class="filter-chips">
+                <a th:href="@{/aircraft}" th:class="${selectedStatus == null} ? 'filter-chip filter-chip--active' : 'filter-chip'"><span class="material-symbols-outlined">grid_view</span>All <span class="chip-badge" th:text="${totalCount}">0</span></a>
+                <a th:href="@{/aircraft(status='ACTIVE')}" th:class="${selectedStatus?.name() == 'ACTIVE'} ? 'filter-chip filter-chip--active-color' : 'filter-chip'"><span class="status-dot status-dot--active"></span>Active <span class="chip-badge" th:text="${activeCount}">0</span></a>
+                <a th:href="@{/aircraft(status='MAINTENANCE')}" th:class="${selectedStatus?.name() == 'MAINTENANCE'} ? 'filter-chip filter-chip--amber' : 'filter-chip'"><span class="status-dot status-dot--maintenance"></span>Maintenance <span class="chip-badge" th:text="${maintenanceCount}">0</span></a>
+                <a th:href="@{/aircraft(status='RETIRED')}" th:class="${selectedStatus?.name() == 'RETIRED'} ? 'filter-chip filter-chip--grey' : 'filter-chip'"><span class="status-dot status-dot--retired"></span>Retired <span class="chip-badge" th:text="${retiredCount}">0</span></a>
+            </div>
+            <div class="sky-card" style="padding:0;overflow:hidden">
+                <div th:if="${#lists.isEmpty(aircraft)}" class="sky-empty"><span class="material-symbols-outlined">airplanemode_inactive</span><p>No aircraft found <span th:if="${selectedStatus != null}">with status <strong th:text="${selectedStatus.name()}"></strong></span></p><sec:authorize access="hasRole('ADMIN')"><a th:href="@{/aircraft/add}" class="btn-sky-primary">Add first aircraft</a></sec:authorize></div>
+                <div th:if="${!#lists.isEmpty(aircraft)}" class="table-responsive"><table class="sky-table"><thead><tr><th></th><th>Registration</th><th>Model</th><th>Manufacturer</th><th>Type</th><th>Capacity</th><th>Status</th><sec:authorize access="hasRole('ADMIN')"><th style="text-align:right">Actions</th></sec:authorize></tr></thead>
+                    <tbody><tr th:each="ac : ${aircraft}">
+                        <td><div class="aircraft-thumb"><img th:if="${ac.imagePath != null}" class="aircraft-thumb__img" th:src="@{'/uploads/' + ac.imagePath}" th:alt="${ac.modelName}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="aircraft-thumb__fallback" th:style="${ac.imagePath != null} ? 'display:none' : ''"><span class="material-symbols-outlined">airplanemode_active</span></div></div></td>
+                        <td><span class="reg-number" th:text="${ac.registrationNumber}">S2-AKA</span></td><td><span class="model-name" th:text="${ac.modelName}">Boeing 737-800</span></td><td><span class="manufacturer-tag" th:text="${ac.manufacturer}">Boeing</span></td><td><code class="type-code" th:text="${ac.aircraftTypeCode}">B738</code></td>
+                         <td><div class="seat-visual"><div class="seat-visual__total" th:text="${ac.totalSeats} + ' seats'">162 seats</div><div class="seat-visual__bar"><div class="seat-segment seat-segment--economy" th:if="${ac.totalSeats > 0}" th:style="|width:${ac.economySeats * 100 / ac.totalSeats}%|" th:title="'Economy: ' + ac.economySeats"></div><div class="seat-segment seat-segment--business" th:if="${ac.totalSeats > 0}" th:style="|width:${ac.businessSeats * 100 / ac.totalSeats}%|" th:title="'Business: ' + ac.businessSeats"></div><div class="seat-segment seat-segment--first" th:if="${ac.totalSeats > 0}" th:style="|width:${ac.firstClassSeats * 100 / ac.totalSeats}%|" th:title="'First: ' + ac.firstClassSeats"></div></div><div class="seat-visual__legend"><span th:if="${ac.economySeats > 0}"><i class="legend-dot legend-dot--eco"></i>Eco <span th:text="${ac.economySeats}">0</span></span><span th:if="${ac.businessSeats > 0}"><i class="legend-dot legend-dot--biz"></i>Biz <span th:text="${ac.businessSeats}">0</span></span><span th:if="${ac.firstClassSeats > 0}"><i class="legend-dot legend-dot--first"></i>F <span th:text="${ac.firstClassSeats}">0</span></span></div></div></td>
+                         <td><span th:class="|badge-status badge-${ac.status.name().toLowerCase()}|" th:text="${ac.status.name()}">ACTIVE</span></td>
+                        <sec:authorize access="hasRole('ADMIN')"><td style="text-align:right"><a class="btn-icon" title="Edit aircraft" th:href="@{/aircraft/edit/{id}(id=${ac.id})}"><span class="material-symbols-outlined">edit</span></a><button type="button" class="btn-icon danger delete-aircraft" title="Delete aircraft" th:attr="data-id=${ac.id},data-reg=${ac.registrationNumber}"><span class="material-symbols-outlined">delete</span></button></td></sec:authorize>
+                    </tr></tbody>
+                </table></div>
+            </div>
+            <form id="deleteForm" method="post" style="display:none"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"></form>
+        </main>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script><script th:src="@{/js/sweetalert-utils.js}"></script><script th:src="@{/js/main.js}"></script>
+<script>
+document.querySelectorAll('.delete-aircraft').forEach(function(button){button.addEventListener('click',function(){const id=button.dataset.id;const reg=button.dataset.reg;Swal.fire({title:'Delete '+reg+'?',text:'Aircraft assigned to future flights cannot be deleted.',icon:'warning',showCancelButton:true,confirmButtonColor:'#ba1a1a',cancelButtonColor:'#68519d',confirmButtonText:'Yes, remove aircraft'}).then(function(result){if(result.isConfirmed){const form=document.getElementById('deleteForm');form.action='/aircraft/delete/'+id;form.submit();}});});});
+</script>
+</body></html>
