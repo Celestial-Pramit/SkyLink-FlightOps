@@ -1,0 +1,134 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+    --primary: #1d0947;
+    --primary-container: #32215c;
+    --on-primary: #ffffff;
+    --primary-fixed: #e9ddff;
+    --primary-fixed-dim: #cfbcff;
+    --secondary: #68519d;
+    --secondary-container: #c5abff;
+    --on-secondary: #ffffff;
+    --secondary-fixed: #e9ddff;
+    --secondary-fixed-dim: #d1bcff;
+    --on-secondary-container: #523b86;
+    --background: #f7f9fc;
+    --surface: #fdf8fe;
+    --surface-container: #f2ecf2;
+    --surface-container-low: #f7f2f8;
+    --surface-container-lowest: #ffffff;
+    --surface-container-high: #ece6ec;
+    --surface-container-highest: #e6e1e7;
+    --on-surface: #1c1b1f;
+    --on-surface-variant: #49454f;
+    --text-muted: #7a7580;
+    --outline: #7a7580;
+    --outline-variant: #cac4d0;
+    --error: #ba1a1a;
+    --error-container: #ffdad6;
+    --on-error: #ffffff;
+    --badge-confirmed-bg: #e6f4ea;
+    --badge-confirmed-txt: #137333;
+    --badge-pending-bg: #fef7e0;
+    --badge-pending-txt: #b06000;
+    --badge-cancelled-bg: #ffdad6;
+    --badge-cancelled-txt: #ba1a1a;
+    --badge-boarded-bg: #e8eaf6;
+    --badge-boarded-txt: #3949ab;
+    --badge-completed-bg: #e8f5e9;
+    --badge-completed-txt: #2e7d32;
+    --badge-inflight-bg: #e3f2fd;
+    --badge-inflight-txt: #0277bd;
+    --badge-delayed-bg: #fff3e0;
+    --badge-delayed-txt: #e65100;
+    --badge-active-bg: #e6f4ea;
+    --badge-active-txt: #137333;
+    --badge-maintenance-bg: #fff3e0;
+    --badge-maintenance-txt: #e65100;
+    --badge-retired-bg: #f5f5f5;
+    --badge-retired-txt: #616161;
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-display: 700 32px/40px var(--font-family);
+    --font-headline-md: 600 24px/32px var(--font-family);
+    --font-headline-sm: 600 20px/28px var(--font-family);
+    --font-title-lg: 600 18px/24px var(--font-family);
+    --font-body-md: 400 16px/24px var(--font-family);
+    --font-body-sm: 400 14px/20px var(--font-family);
+    --font-label-md: 600 12px/16px var(--font-family);
+    --font-label-sm: 500 11px/14px var(--font-family);
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+    --space-2xl: 48px;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-full: 9999px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+    --shadow-md: 0 4px 12px rgba(50,33,92,.08);
+    --shadow-lg: 0 8px 24px rgba(50,33,92,.12);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; font: var(--font-body-md); color: var(--on-surface); background: var(--background); -webkit-font-smoothing: antialiased; }
+a { color: var(--secondary); text-decoration: none; }
+a:hover { color: var(--primary); }
+.material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-size: 20px; line-height: 1; vertical-align: middle; }
+.app-wrapper { display: flex; min-height: 100vh; }
+.main-content { flex: 1; min-height: 100vh; margin-left: 260px; display: flex; flex-direction: column; }
+.page-content { flex: 1; padding: var(--space-lg) var(--space-xl); background: var(--background); }
+.page-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-md); margin-bottom: var(--space-lg); }
+.page-heading h1 { margin: 0; font: var(--font-headline-sm); color: var(--primary); }
+.page-heading p { margin: var(--space-xs) 0 0; color: var(--text-muted); font: var(--font-body-sm); }
+.badge-status { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: var(--radius-full); font: var(--font-label-sm); font-weight: 600; white-space: nowrap; }
+.badge-status::before { content: '●'; font-size: 7px; }
+.badge-confirmed { background: var(--badge-confirmed-bg); color: var(--badge-confirmed-txt); }
+.badge-pending { background: var(--badge-pending-bg); color: var(--badge-pending-txt); }
+.badge-cancelled { background: var(--badge-cancelled-bg); color: var(--badge-cancelled-txt); }
+.badge-boarded, .badge-scheduled { background: var(--badge-boarded-bg); color: var(--badge-boarded-txt); }
+.badge-completed, .badge-arrived { background: var(--badge-completed-bg); color: var(--badge-completed-txt); }
+.badge-inflight, .badge-departed { background: var(--badge-inflight-bg); color: var(--badge-inflight-txt); }
+.badge-delayed { background: var(--badge-delayed-bg); color: var(--badge-delayed-txt); }
+.badge-active { background: var(--badge-active-bg); color: var(--badge-active-txt); }
+.badge-maintenance { background: var(--badge-maintenance-bg); color: var(--badge-maintenance-txt); }
+.badge-retired { background: var(--badge-retired-bg); color: var(--badge-retired-txt); }
+.sky-card { padding: var(--space-lg); border: 1px solid var(--outline-variant); border-radius: var(--radius-md); background: var(--surface); transition: box-shadow .2s, border-color .2s; }
+.sky-card:hover { border-color: var(--secondary-container); box-shadow: var(--shadow-md); }
+.sky-card-title { margin-bottom: var(--space-md); color: var(--primary); font: var(--font-title-lg); }
+.sky-table { width: 100%; border-collapse: collapse; font: var(--font-body-sm); }
+.sky-table thead th { padding: var(--space-sm) var(--space-md); text-align: left; color: var(--on-surface-variant); background: var(--surface-container); border-bottom: 1px solid var(--outline-variant); font: var(--font-label-md); letter-spacing: .04em; text-transform: uppercase; }
+.sky-table tbody td { padding: var(--space-sm) var(--space-md); color: var(--on-surface); border-bottom: 1px solid var(--outline-variant); vertical-align: middle; }
+.sky-table tbody tr:hover { background: var(--surface-container-low); }
+.cell-mono { text-align: right; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.btn-sky-primary, .btn-sky-ghost, .btn-sky-danger { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-xs); padding: 8px 18px; border-radius: var(--radius-md); font: var(--font-label-md); cursor: pointer; text-decoration: none; transition: background .18s, transform .1s; }
+.btn-sky-primary { color: var(--on-secondary); background: var(--secondary); border: 0; }
+.btn-sky-primary:hover { color: var(--on-secondary); background: #5a449a; transform: translateY(-1px); }
+.btn-sky-ghost { color: var(--on-surface); background: transparent; border: 1px solid var(--outline-variant); }
+.btn-sky-ghost:hover { color: var(--on-surface); background: var(--surface-container-low); }
+.btn-sky-danger { color: var(--error); background: var(--error-container); border: 0; }
+.btn-sky-danger:hover { color: var(--error); background: #ffb4ab; }
+.btn-icon { display: inline-flex; align-items: center; padding: 4px 6px; color: var(--text-muted); background: none; border: 0; border-radius: var(--radius-sm); cursor: pointer; transition: color .15s, background .15s; }
+.btn-icon:hover { color: var(--secondary); background: var(--surface-container); }
+.btn-icon.danger:hover { color: var(--error); background: var(--error-container); }
+.sky-form-group { margin-bottom: var(--space-md); }
+.sky-label { display: block; margin-bottom: var(--space-xs); color: var(--on-surface-variant); font: var(--font-label-md); letter-spacing: .04em; text-transform: uppercase; }
+.sky-input, .sky-select, .sky-textarea { width: 100%; padding: 9px 12px; color: var(--on-surface); background: var(--surface-container-lowest); border: 1px solid var(--outline-variant); border-radius: var(--radius-sm); outline: none; font: var(--font-body-sm); transition: border-color .15s, box-shadow .15s; }
+.sky-input:focus, .sky-select:focus, .sky-textarea:focus { border-color: var(--secondary); box-shadow: 0 0 0 3px rgba(104,81,157,.12); }
+.sky-input.is-invalid, .sky-select.is-invalid { border-color: var(--error); box-shadow: 0 0 0 3px rgba(186,26,26,.1); }
+.sky-error-text { display: block; margin-top: 4px; color: var(--error); font: var(--font-label-sm); }
+.sky-breadcrumb { display: flex; align-items: center; gap: 6px; margin-bottom: var(--space-md); color: var(--text-muted); font: var(--font-label-sm); }
+.sky-breadcrumb a { color: var(--secondary); }
+.sky-empty { padding: var(--space-2xl) var(--space-lg); color: var(--text-muted); text-align: center; }
+.sky-empty .material-symbols-outlined { display: block; margin-bottom: var(--space-md); font-size: 48px; opacity: .4; }
+.route-visual { display: flex; align-items: center; gap: var(--space-sm); color: var(--on-surface); font-weight: 600; white-space: nowrap; }
+.route-visual .iata { font-size: 15px; font-weight: 700; }
+.route-visual .route-line { display: flex; flex: 1; align-items: center; gap: 2px; min-width: 40px; color: var(--secondary); font-size: 11px; }
+.route-visual .route-line::before, .route-visual .route-line::after { content: ''; flex: 1; height: 1px; background: var(--outline-variant); }
+.dark-card { position: relative; overflow: hidden; padding: var(--space-lg); color: var(--on-primary); background: var(--primary); border-radius: var(--radius-lg); }
+.dark-card::before { position: absolute; top: -40px; right: -40px; width: 140px; height: 140px; content: ''; background: var(--secondary); border-radius: 50%; opacity: .25; filter: blur(30px); pointer-events: none; }
+.dark-card .airport-code { font: var(--font-display); letter-spacing: -.02em; }
+.dark-card .city-name { color: var(--primary-fixed-dim); font: var(--font-label-md); letter-spacing: .05em; text-transform: uppercase; }
+.dark-card .price { color: var(--secondary-fixed-dim); font: var(--font-headline-md); }
+@media (max-width: 768px) { .main-content { margin-left: 0; } .page-content { padding: var(--space-md); } .page-heading { display: block; } }

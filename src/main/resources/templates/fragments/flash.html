@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="flash" th:if="${flashType != null and flashMessage != null}">
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+            triggerFlash(/*[[${flashType}]]*/ 'info', /*[[${flashMessage}]]*/ '');
+        });
+    </script>
+</th:block>
+</body>
+</html>

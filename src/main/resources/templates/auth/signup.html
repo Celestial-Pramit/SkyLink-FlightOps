@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Sign Up - SkyLink Ops</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+</head>
+<body>
+<div class="auth-page">
+    <div class="auth-brand"><span class="material-symbols-outlined brand-icon">person_add</span><h1 class="brand-title">Join SkyLink Ops</h1><p class="brand-subtitle">Staff access for fast, clear reception operations.</p></div>
+    <div class="auth-form-panel">
+        <div class="auth-card">
+            <h2 class="auth-card-title">Create staff account</h2><p class="auth-card-sub">Your administrator can approve access after registration.</p>
+            <form action="#" method="post" id="signupForm" onsubmit="return false;">
+                <div class="sky-form-group"><label class="sky-label" for="fullName">Full name</label><input class="sky-input" id="fullName" required></div>
+                <div class="sky-form-group"><label class="sky-label" for="signupEmail">Email address</label><input class="sky-input" id="signupEmail" type="email" required></div>
+                <div class="sky-form-group"><label class="sky-label" for="signupPassword">Password</label><div class="password-wrapper"><input class="sky-input" id="signupPassword" type="password" required><button class="password-toggle" type="button" id="signupPasswordToggle" aria-label="Show password"><span class="material-symbols-outlined">visibility</span></button></div><div class="strength-bar-wrap"><div class="strength-bar" id="strengthBar"></div></div><span class="strength-label" id="strengthLabel">Password strength</span></div>
+                <div class="checkbox-row"><input type="checkbox" id="signupTerms" required><label for="signupTerms">I agree to the <a href="#" onclick="showTerms(); return false;">Terms of Use</a>.</label></div>
+                <button class="btn-sky-primary" type="submit" style="width:100%;justify-content:center">Request access</button>
+            </form>
+            <p style="text-align:center;margin-top:var(--space-lg);font:var(--font-body-sm);color:var(--text-muted)"><a th:href="@{/login}">Back to sign in</a></p>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:src="@{/js/sweetalert-utils.js}"></script>
+<script th:src="@{/js/form-utils.js}"></script>
+<script>
+    initPasswordToggle('signupPassword', 'signupPasswordToggle');
+    initStrengthMeter('signupPassword', 'strengthBar', 'strengthLabel');
+</script>
+</body>
+</html>
