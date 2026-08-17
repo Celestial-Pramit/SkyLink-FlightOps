@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head th:replace="~{layout/base :: head('Super Admin - SkyLink Ops')}"></head>
+<body>
+<div th:replace="~{layout/base :: layout(~{::main})}">
+    <main>
+        <div class="page-heading"><div><h1>Super Admin Workspace</h1><p>Restricted account administration area.</p></div></div>
+        <div class="sky-card" style="text-align:center;padding:60px 24px">
+            <span class="material-symbols-outlined" style="display:block;margin-bottom:16px;color:var(--secondary);font-size:64px">admin_panel_settings</span>
+            <h2 style="color:var(--primary);font:var(--font-headline-sm)">Super admin access confirmed</h2>
+            <p style="margin-top:8px;color:var(--text-muted)">User administration and audit tools arrive in Phase 8.</p>
+        </div>
+    </main>
+</div>
+</body>
+</html>
