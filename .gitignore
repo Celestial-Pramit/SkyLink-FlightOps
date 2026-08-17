@@ -1,0 +1,36 @@
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# Logs
+*.log
+spring-run.log
+spring-run-error.log
+jar-run.log
+jar-run-error.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploaded files (keep folder structure, ignore contents)
+uploads/**
+!uploads/
+!uploads/**/
+!uploads/**/.gitkeep
+
+# Environment / secrets
+application-prod.yml
+.env
+
+# Build verification logs
+target/*.log
+target/full-verify*.log
+target/final-verify*.log
+target/smoke*.log
