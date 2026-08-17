@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flights - SkyLink Ops</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/sidebar.css}">
+    <link rel="stylesheet" th:href="@{/css/topbar.css}">
+    <link rel="stylesheet" th:href="@{/css/flights.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+<body>
+<div class="app-wrapper">
+    <th:block th:replace="~{fragments/sidebar :: sidebar('flights')}"></th:block>
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+    <div class="main-content">
+        <th:block th:replace="~{fragments/topbar :: topbar('Flights')}"></th:block>
+        <th:block th:replace="~{fragments/flash :: flash}"></th:block>
+
+        <main class="page-content">
+            <div class="sky-breadcrumb">
+                <a th:href="@{/dashboard}">Dashboard</a>
+                <span class="sep material-symbols-outlined">chevron_right</span>
+                <span>Flights</span>
+            </div>
+
+            <div class="page-header">
+                <div>
+                    <h1 class="page-header__title">Flight Operations</h1>
+                    <p class="page-header__sub">
+                        <span th:text="${totalCount}">0</span> flights in the system
+                    </p>
+                </div>
+                <div class="page-header__actions">
+                    <a th:href="@{/flights/schedule}" class="btn-sky-ghost">
+                        <span class="material-symbols-outlined">calendar_month</span>
+                        Schedule
+                    </a>
+                    <sec:authorize access="hasRole('ADMIN')">
+                        <a th:href="@{/flights/add}" class="btn-sky-primary">
+                            <span class="material-symbols-outlined">add</span>
+                            Add Flight
+                        </a>
+                    </sec:authorize>
+                </div>
+            </div>
+
+            <div class="filter-chips">
+                <a th:href="@{/flights}"
+                   th:class="${search.empty} ? 'filter-chip filter-chip--active' : 'filter-chip'">
+                    <span class="material-symbols-outlined">grid_view</span>
+                    All <span class="chip-badge" th:text="${totalCount}">0</span>
+                </a>
+                <a th:href="@{/flights(status='SCHEDULED')}"
+                   th:class="${search.status?.name() == 'SCHEDULED'} ? 'filter-chip filter-chip--scheduled-active' : 'filter-chip'">
+                    <span class="flight-dot flight-dot--scheduled"></span>
+                    Scheduled <span class="chip-badge" th:text="${scheduledCount}">0</span>
+                </a>
+                <a th:href="@{/flights(status='BOARDING')}"
+                   th:class="${search.status?.name() == 'BOARDING'} ? 'filter-chip filter-chip--boarding-active' : 'filter-chip'">
+                    <span class="flight-dot flight-dot--boarding"></span>
+                    Boarding <span class="chip-badge" th:text="${boardingCount}">0</span>
+                </a>
+                <a th:href="@{/flights(status='DEPARTED')}"
+                   th:class="${search.status?.name() == 'DEPARTED'} ? 'filter-chip filter-chip--departed-active' : 'filter-chip'">
+                    <span class="flight-dot flight-dot--departed"></span>
+                    Departed <span class="chip-badge" th:text="${departedCount}">0</span>
+                </a>
+                <a th:href="@{/flights(status='CANCELLED')}"
+                   th:class="${search.status?.name() == 'CANCELLED'} ? 'filter-chip filter-chip--cancelled-active' : 'filter-chip'">
+                    <span class="flight-dot flight-dot--cancelled"></span>
+                    Cancelled <span class="chip-badge" th:text="${cancelledCount}">0</span>
+                </a>
+            </div>
+
+            <div class="sky-card filter-bar">
+                <form th:action="@{/flights}" method="get" id="filterForm" th:object="${search}">
+                    <div class="filter-bar__grid">
+                        <div class="sky-form-group filter-group">
+                            <label class="sky-label" for="originAirportId">Origin</label>
+                            <select id="originAirportId" name="originAirportId" class="sky-select"
+                                    onchange="document.getElementById('filterForm').submit()">
+                                <option value="">All origins</option>
+                                <option th:each="airport : ${airports}"
+                                        th:value="${airport.id}"
+                                        th:text="|${airport.iataCode} - ${airport.city}|"
+                                        th:selected="${search.originAirportId == airport.id}"></option>
+                            </select>
+                        </div>
+                        <div class="sky-form-group filter-group">
+                            <label class="sky-label" for="destinationAirportId">Destination</label>
+                            <select id="destinationAirportId" name="destinationAirportId" class="sky-select"
+                                    onchange="document.getElementById('filterForm').submit()">
+                                <option value="">All destinations</option>
+                                <option th:each="airport : ${airports}"
+                                        th:value="${airport.id}"
+                                        th:text="|${airport.iataCode} - ${airport.city}|"
+                                        th:selected="${search.destinationAirportId == airport.id}"></option>
+                            </select>
+                        </div>
+                        <div class="sky-form-group filter-group">
+                            <label class="sky-label" for="departureDate">Date</label>
+                            <input id="departureDate" type="date" name="departureDate" class="sky-input"
+                                   th:value="${search.departureDate}"
+                                   onchange="document.getElementById('filterForm').submit()">
+                        </div>
+                        <div class="sky-form-group filter-group">
+                            <label class="sky-label" for="flightNumber">Flight No.</label>
+                            <div class="filter-search-input">
+                                <input id="flightNumber" type="text" name="flightNumber" class="sky-input"
+                                       placeholder="e.g. BS-141" th:value="${search.flightNumber}">
+                                <button type="submit" class="filter-search-button" aria-label="Search flights">
+                                    <span class="material-symbols-outlined">search</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="filter-group filter-group--action">
+                            <a th:if="${!search.empty}" th:href="@{/flights}" class="btn-sky-ghost clear-filter-button">
+                                <span class="material-symbols-outlined">close</span> Clear
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="sky-card flight-table-card">
+                <div th:if="${#lists.isEmpty(flights)}" class="sky-empty">
+                    <span class="material-symbols-outlined">flight_land</span>
+                    <p th:if="${search.empty}">No flights in the system yet.</p>
+                    <p th:if="${!search.empty}">No flights match your search criteria.</p>
+                    <div class="empty-actions">
+                        <a th:if="${!search.empty}" th:href="@{/flights}" class="btn-sky-ghost">Clear filters</a>
+                        <sec:authorize access="hasRole('ADMIN')">
+                            <a th:if="${search.empty}" th:href="@{/flights/add}" class="btn-sky-primary">Add first flight</a>
+                        </sec:authorize>
+                    </div>
+                </div>
+
+                <div th:if="${!#lists.isEmpty(flights)}" class="table-responsive">
+                    <table class="sky-table">
+                        <thead>
+                        <tr>
+                            <th>Flight</th><th>Route</th><th>Departure</th><th>Arrival</th>
+                            <th>Duration</th><th>Aircraft</th><th>Availability</th><th>Status</th>
+                            <th class="actions-column">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="f : ${flights}">
+                            <td>
+                                <a th:href="@{/flights/{id}(id=${f.id})}" class="flight-number-link"
+                                   th:text="${f.flightNumber}">BS-141</a>
+                            </td>
+                            <td>
+                                <div class="route-visual">
+                                    <div class="route-airport">
+                                        <span class="iata" th:text="${f.originAirport.iataCode}">DAC</span>
+                                        <span class="city" th:text="${f.originAirport.city}">Dhaka</span>
+                                    </div>
+                                    <div class="route-line">
+                                        <div class="route-dash"></div>
+                                        <span class="material-symbols-outlined route-plane">flight</span>
+                                        <div class="route-dash"></div>
+                                    </div>
+                                    <div class="route-airport">
+                                        <span class="iata" th:text="${f.destinationAirport.iataCode}">CGP</span>
+                                        <span class="city" th:text="${f.destinationAirport.city}">Chittagong</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="datetime-cell">
+                                    <span class="time" th:text="${#temporals.format(f.departureTime, 'HH:mm')}">08:30</span>
+                                    <span class="date" th:text="${#temporals.format(f.departureTime, 'dd MMM')}">12 Aug</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="datetime-cell">
+                                    <span class="time" th:text="${#temporals.format(f.arrivalTime, 'HH:mm')}">09:30</span>
+                                    <span class="date" th:text="${#temporals.format(f.arrivalTime, 'dd MMM')}">12 Aug</span>
+                                </div>
+                            </td>
+                            <td><span class="duration-badge" th:text="${f.formattedDuration}">1h 00m</span></td>
+                            <td>
+                                <div class="aircraft-cell">
+                                    <span class="material-symbols-outlined aircraft-icon">airplanemode_active</span>
+                                    <div><div class="aircraft-reg" th:text="${f.aircraft.registrationNumber}">S2-AKA</div>
+                                        <div class="aircraft-model" th:text="${f.aircraft.modelName}">Boeing 737</div></div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="avail-bars">
+                                    <div th:if="${f.aircraft.economySeats > 0}" class="avail-row">
+                                        <span class="avail-label">Eco</span>
+                                        <div class="avail-bar-wrap"><div class="avail-bar avail-bar--eco"
+                                            th:style="|width:${f.availableEconomySeats * 100 / f.aircraft.economySeats}%|"></div></div>
+                                        <span class="avail-count" th:text="${f.availableEconomySeats}">120</span>
+                                    </div>
+                                    <div th:if="${f.aircraft.businessSeats > 0}" class="avail-row">
+                                        <span class="avail-label">Biz</span>
+                                        <div class="avail-bar-wrap"><div class="avail-bar avail-bar--biz"
+                                            th:style="|width:${f.availableBusinessSeats * 100 / f.aircraft.businessSeats}%|"></div></div>
+                                        <span class="avail-count" th:text="${f.availableBusinessSeats}">20</span>
+                                    </div>
+                                    <div th:if="${f.availableEconomySeats < 10 and f.availableEconomySeats > 0}" class="avail-warning">
+                                        <span class="material-symbols-outlined">warning</span> Almost full
+                                    </div>
+                                    <div th:if="${f.availableEconomySeats == 0 and f.aircraft.economySeats > 0}" class="avail-sold-out">Eco sold out</div>
+                                </div>
+                            </td>
+                            <td><span th:class="|badge-status badge-${f.status.name().toLowerCase()}|"
+                                      th:text="${f.status.name()}">SCHEDULED</span></td>
+                            <td class="actions-column">
+                                <a th:href="@{/flights/{id}(id=${f.id})}" class="btn-icon" title="View flight details">
+                                    <span class="material-symbols-outlined">open_in_new</span>
+                                </a>
+                                <a th:href="@{/bookings/search(flightId=${f.id})}" class="btn-icon" title="Book this flight">
+                                    <span class="material-symbols-outlined">book_online</span>
+                                </a>
+                                <sec:authorize access="hasRole('ADMIN')">
+                                    <a th:href="@{/flights/edit/{id}(id=${f.id})}" class="btn-icon" title="Edit flight">
+                                        <span class="material-symbols-outlined">edit</span>
+                                    </a>
+                                    <button type="button" class="btn-icon danger delete-flight"
+                                            title="Delete flight" th:attr="data-id=${f.id},data-flight-number=${f.flightNumber}">
+                                        <span class="material-symbols-outlined">delete</span>
+                                    </button>
+                                </sec:authorize>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <form id="deleteForm" method="post" class="hidden-form">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            </form>
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:src="@{/js/sweetalert-utils.js}"></script>
+<script th:src="@{/js/main.js}"></script>
+<script>
+    document.querySelectorAll('.delete-flight').forEach(function (button) {
+        button.addEventListener('click', function () {
+            var id = button.dataset.id;
+            var flightNumber = button.dataset.flightNumber;
+            Swal.fire({
+                title: 'Delete flight ' + flightNumber + '?',
+                html: 'Deleting <strong>' + flightNumber + '</strong> is permanent.' +
+                    '<br><br><small>Flights with existing bookings cannot be deleted.</small>',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ba1a1a',
+                cancelButtonColor: '#68519d',
+                confirmButtonText: 'Yes, delete flight',
+                cancelButtonText: 'Cancel',
+                reverseButtons: true
+            }).then(function (result) {
+                if (result.isConfirmed) {
+                    var form = document.getElementById('deleteForm');
+                    form.action = '/flights/delete/' + id;
+                    form.submit();
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

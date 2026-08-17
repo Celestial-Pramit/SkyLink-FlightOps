@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${isEdit} ? |Edit ${flightDto.flightNumber} - SkyLink Ops| : 'Add Flight - SkyLink Ops'">Flight Form</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/sidebar.css}">
+    <link rel="stylesheet" th:href="@{/css/topbar.css}">
+    <link rel="stylesheet" th:href="@{/css/flights.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+<body>
+<div class="app-wrapper">
+    <th:block th:replace="~{fragments/sidebar :: sidebar('flights')}"></th:block>
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+    <div class="main-content">
+        <th:block th:replace="~{fragments/topbar :: topbar(${pageTitle})}"></th:block>
+        <th:block th:replace="~{fragments/flash :: flash}"></th:block>
+        <main class="page-content">
+            <div class="sky-breadcrumb">
+                <a th:href="@{/dashboard}">Dashboard</a><span class="sep material-symbols-outlined">chevron_right</span>
+                <a th:href="@{/flights}">Flights</a><span class="sep material-symbols-outlined">chevron_right</span>
+                <span th:text="${isEdit} ? 'Edit' : 'Add'">Add</span>
+            </div>
+
+            <div class="page-header">
+                <div>
+                    <h1 class="page-header__title" th:text="${isEdit} ? |Edit ${flightDto.flightNumber}| : 'Schedule New Flight'">Schedule New Flight</h1>
+                    <p class="page-header__sub" th:text="${isEdit} ? 'Update flight details and schedule.' : 'Add a new flight to the operations schedule.'"></p>
+                </div>
+                <a th:href="@{/flights}" class="btn-sky-ghost"><span class="material-symbols-outlined">arrow_back</span>Back to Flights</a>
+            </div>
+
+            <form id="flightForm" th:object="${flightDto}"
+                  th:action="${isEdit} ? '/flights/edit/' + flightDto.id : '/flights/add'"
+                  method="post" novalidate>
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <input type="hidden" th:field="*{id}">
+
+                <div class="form-layout">
+                    <div class="form-main">
+                        <section class="form-section">
+                            <div class="form-section__header"><span class="material-symbols-outlined">confirmation_number</span>Flight Details</div>
+                            <div class="form-row-2">
+                                <div class="sky-form-group">
+                                    <label class="sky-label" for="flightNumber">Flight Number *</label>
+                                    <input id="flightNumber" class="sky-input" th:field="*{flightNumber}"
+                                           th:classappend="${#fields.hasErrors('flightNumber')} ? ' is-invalid'"
+                                           placeholder="BS-141" maxlength="8" oninput="this.value=this.value.toUpperCase()">
+                                    <span class="sky-error-text" th:if="${#fields.hasErrors('flightNumber')}" th:errors="*{flightNumber}"></span>
+                                </div>
+                                <div class="sky-form-group">
+                                    <label class="sky-label" for="status">Flight Status *</label>
+                                    <select id="status" class="sky-select" th:field="*{status}"
+                                            th:classappend="${#fields.hasErrors('status')} ? ' is-invalid'">
+                                        <option value="">Select status</option>
+                                        <option th:each="s : ${statuses}" th:value="${s}" th:text="${s.name()}"></option>
+                                    </select>
+                                    <span class="sky-error-text" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></span>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="form-section">
+                            <div class="form-section__header"><span class="material-symbols-outlined">route</span>Route</div>
+                            <div class="route-preview">
+                                <div class="route-preview__airport"><span id="originIata" class="route-preview__iata">???</span><span id="originCity" class="route-preview__city">Select origin</span></div>
+                                <div class="route-preview__line"><div class="route-preview__dash"></div><span class="material-symbols-outlined route-preview__plane">flight</span><div class="route-preview__dash"></div></div>
+                                <div class="route-preview__airport"><span id="destIata" class="route-preview__iata">???</span><span id="destCity" class="route-preview__city">Select destination</span></div>
+                            </div>
+                            <div class="form-row-2 route-select-row">
+                                <div class="sky-form-group">
+                                    <label class="sky-label" for="originAirportId">Origin Airport *</label>
+                                    <select id="originAirportId" class="sky-select" th:field="*{originAirportId}"
+                                            th:classappend="${#fields.hasErrors('originAirportId')} ? ' is-invalid'" onchange="updateRoutePreview()">
+                                        <option value="">Select origin</option>
+                                        <option th:each="a : ${airports}" th:value="${a.id}" th:text="|${a.iataCode} - ${a.city}, ${a.country}|"
+                                                th:attr="data-iata=${a.iataCode},data-city=${a.city}"></option>
+                                    </select>
+                                    <span class="sky-error-text" th:if="${#fields.hasErrors('originAirportId')}" th:errors="*{originAirportId}"></span>
+                                </div>
+                                <div class="sky-form-group">
+                                    <label class="sky-label" for="destinationAirportId">Destination Airport *</label>
+                                    <select id="destinationAirportId" class="sky-select" th:field="*{destinationAirportId}"
+                                            th:classappend="${#fields.hasErrors('destinationAirportId')} ? ' is-invalid'" onchange="updateRoutePreview()">
+                                        <option value="">Select destination</option>
+                                        <option th:each="a : ${airports}" th:value="${a.id}" th:text="|${a.iataCode} - ${a.city}, ${a.country}|"
+                                                th:attr="data-iata=${a.iataCode},data-city=${a.city}"></option>
+                                    </select>
+                                    <span class="sky-error-text" th:if="${#fields.hasErrors('destinationAirportId')}" th:errors="*{destinationAirportId}"></span>
+                                    <span id="sameAirportWarning" class="sky-error-text form-live-error">Origin and destination cannot be the same.</span>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="form-section">
+                            <div class="form-section__header"><span class="material-symbols-outlined">schedule</span>Schedule
+                                <span id="durationDisplay" class="form-section__hint form-live-duration">Duration: <strong id="durationValue">-</strong></span>
+                            </div>
+                            <div class="form-row-2">
+                                <div class="sky-form-group">
+                                    <label class="sky-label" for="departureTime">Departure Date &amp; Time *</label>
+                                    <input id="departureTime" type="datetime-local" class="sky-input" th:field="*{departureTime}"
+                                           th:classappend="${#fields.hasErrors('departureTime')} ? ' is-invalid'" onchange="updateDuration();validateDepartureOrder()">
+                                    <span class="sky-error-text" th:if="${#fields.hasErrors('departureTime')}" th:errors="*{departureTime}"></span>
+                                </div>
+                                <div class="sky-form-group">
+                                    <label class="sky-label" for="arrivalTime">Arrival Date &amp; Time *</label>
+                                    <input id="arrivalTime" type="datetime-local" class="sky-input" th:field="*{arrivalTime}"
+                                           th:classappend="${#fields.hasErrors('arrivalTime')} ? ' is-invalid'" onchange="updateDuration();validateDepartureOrder()">
+                                    <span id="timeOrderWarning" class="sky-error-text form-live-error">Arrival must be after departure.</span>
+                                    <span class="sky-error-text" th:if="${#fields.hasErrors('arrivalTime')}" th:errors="*{arrivalTime}"></span>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="form-section">
+                            <div class="form-section__header"><span class="material-symbols-outlined">airplanemode_active</span>Aircraft Assignment</div>
+                            <div class="sky-form-group">
+                                <label class="sky-label" for="aircraftId">Aircraft * <span class="label-note">(Active aircraft only)</span></label>
+                                <select id="aircraftId" class="sky-select" th:field="*{aircraftId}"
+                                        th:classappend="${#fields.hasErrors('aircraftId')} ? ' is-invalid'" onchange="showAircraftInfo()">
+                                    <option value="">Select aircraft</option>
+                                    <option th:each="ac : ${aircraft}" th:value="${ac.id}"
+                                            th:text="|${ac.registrationNumber} - ${ac.modelName} (${ac.totalSeats} seats)|"
+                                            th:attr="data-eco=${ac.economySeats},data-biz=${ac.businessSeats},data-first=${ac.firstClassSeats},data-total=${ac.totalSeats}"></option>
+                                </select>
+                                <span class="sky-error-text" th:if="${#fields.hasErrors('aircraftId')}" th:errors="*{aircraftId}"></span>
+                            </div>
+                            <div id="aircraftInfoCard" class="aircraft-info-card form-live-card">
+                                <div class="aircraft-info-row"><span>Total Seats</span><strong id="infoTotal">-</strong></div>
+                                <div class="aircraft-info-row"><span><i class="legend-dot legend-dot--eco"></i> Economy</span><strong id="infoEco">-</strong></div>
+                                <div class="aircraft-info-row"><span><i class="legend-dot legend-dot--biz"></i> Business</span><strong id="infoBiz">-</strong></div>
+                                <div id="firstRow" class="aircraft-info-row"><span><i class="legend-dot legend-dot--first"></i> First Class</span><strong id="infoFirst">-</strong></div>
+                                <p class="form-card-note">Available seats are initialized from aircraft capacity when the flight is created.</p>
+                            </div>
+                        </section>
+
+                        <section class="form-section">
+                            <div class="form-section__header"><span class="material-symbols-outlined">payments</span>Ticket Pricing <span class="form-section__hint">Prices in BDT</span></div>
+                            <div class="form-row-3">
+                                <div class="sky-form-group"><label class="sky-label price-label--eco" for="economyPrice"><i class="legend-dot legend-dot--eco"></i> Economy *</label><div class="price-input-wrap"><span class="price-currency">BDT</span><input id="economyPrice" type="number" min="0.01" step="0.01" class="sky-input price-input" th:field="*{economyPrice}" th:classappend="${#fields.hasErrors('economyPrice')} ? ' is-invalid'"></div><span class="sky-error-text" th:if="${#fields.hasErrors('economyPrice')}" th:errors="*{economyPrice}"></span></div>
+                                <div class="sky-form-group"><label class="sky-label price-label--biz" for="businessPrice"><i class="legend-dot legend-dot--biz"></i> Business *</label><div class="price-input-wrap"><span class="price-currency">BDT</span><input id="businessPrice" type="number" min="0.01" step="0.01" class="sky-input price-input" th:field="*{businessPrice}" th:classappend="${#fields.hasErrors('businessPrice')} ? ' is-invalid'"></div><span class="sky-error-text" th:if="${#fields.hasErrors('businessPrice')}" th:errors="*{businessPrice}"></span></div>
+                                <div class="sky-form-group"><label class="sky-label price-label--first" for="firstClassPrice"><i class="legend-dot legend-dot--first"></i> First Class *</label><div class="price-input-wrap"><span class="price-currency">BDT</span><input id="firstClassPrice" type="number" min="0" step="0.01" class="sky-input price-input" th:field="*{firstClassPrice}" th:classappend="${#fields.hasErrors('firstClassPrice')} ? ' is-invalid'"></div><span class="sky-error-text" th:if="${#fields.hasErrors('firstClassPrice')}" th:errors="*{firstClassPrice}"></span></div>
+                            </div>
+                        </section>
+
+                        <div class="form-actions"><a th:href="@{/flights}" class="btn-sky-ghost">Cancel</a><button id="submitBtn" type="submit" class="btn-sky-primary"><span class="material-symbols-outlined">save</span><span th:text="${isEdit} ? 'Save Changes' : 'Schedule Flight'">Schedule Flight</span></button></div>
+                    </div>
+
+                    <aside class="form-side">
+                        <div class="flight-summary-card">
+                            <div class="flight-summary-card__header"><span class="material-symbols-outlined">summarize</span>Flight Summary</div>
+                            <div class="summary-route"><span id="summaryOrigin" class="summary-iata">-</span><span class="material-symbols-outlined">flight</span><span id="summaryDest" class="summary-iata">-</span></div>
+                            <div class="summary-detail"><span class="summary-label">Flight No.</span><span id="summaryFlightNum" class="summary-value">-</span></div>
+                            <div class="summary-detail"><span class="summary-label">Duration</span><span id="summaryDuration" class="summary-value">-</span></div>
+                            <div class="summary-detail"><span class="summary-label">Aircraft</span><span id="summaryAircraft" class="summary-value">-</span></div>
+                            <div class="summary-divider"></div>
+                            <div class="summary-detail"><span class="summary-label">Economy</span><span id="summaryEcoPrice" class="summary-price">BDT -</span></div>
+                            <div class="summary-detail"><span class="summary-label">Business</span><span id="summaryBizPrice" class="summary-price">BDT -</span></div>
+                        </div>
+                        <div class="tips-card"><div class="tips-card__header"><span class="material-symbols-outlined">tips_and_updates</span>Quick Tips</div><ul class="tips-list"><li>Flight number: XX-NNN</li><li>Arrival must be after departure</li><li>Origin and destination must differ</li><li>Only active aircraft can be assigned</li><li>Seats are initialized from aircraft capacity</li></ul></div>
+                    </aside>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:src="@{/js/sweetalert-utils.js}"></script>
+<script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/form-utils.js}"></script>
+<script th:src="@{/js/flight-form.js}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        initSubmitLoading('flightForm', 'submitBtn', 'Saving flight...');
+        updateRoutePreview();
+        showAircraftInfo();
+        updateDuration();
+        validateDepartureOrder();
+        updateSummary();
+    });
+</script>
+</body>
+</html>
