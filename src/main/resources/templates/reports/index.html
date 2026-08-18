@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{layout/base :: head('Reports - SkyLink Ops')}"></head>
+<body>
+<div th:replace="~{layout/base :: layout(~{::main})}">
+    <main>
+        <link rel="stylesheet" th:href="@{/css/reports.css}">
+        <div class="page-heading report-heading">
+            <div>
+                <h1>Operations Reports</h1>
+                <p>Booking analytics and revenue overview.</p>
+            </div>
+            <button class="btn-sky-ghost" type="button" onclick="printReport()">
+                <span class="material-symbols-outlined">print</span> Print report
+            </button>
+        </div>
+
+        <form class="report-filters sky-card" method="get" th:action="@{/reports}">
+            <label>Period
+                <select name="days" class="sky-input">
+                    <option value="7" th:selected="${days == 7}">Last 7 days</option>
+                    <option value="14" th:selected="${days == 14}">Last 14 days</option>
+                    <option value="30" th:selected="${days == 30}">Last 30 days</option>
+                </select>
+            </label>
+            <label>Routes
+                <select name="routeLimit" class="sky-input">
+                    <option value="5" th:selected="${routeLimit == 5}">Top 5</option>
+                    <option value="8" th:selected="${routeLimit == 8}">Top 8</option>
+                    <option value="10" th:selected="${routeLimit == 10}">Top 10</option>
+                </select>
+            </label>
+            <button class="btn-sky-primary" type="submit">Apply filters</button>
+        </form>
+
+        <div class="report-kpis">
+            <div class="report-kpi"><span class="material-symbols-outlined">book_online</span><div><strong th:text="${totalBookings}">0</strong><small>Total bookings</small></div></div>
+            <div class="report-kpi"><span class="material-symbols-outlined">payments</span><div><strong th:text="${'BDT ' + #numbers.formatDecimal(totalRevenue, 1, 'COMMA', 0, 'POINT')}">BDT 0</strong><small>Total revenue</small></div></div>
+            <div class="report-kpi"><span class="material-symbols-outlined">group</span><div><strong th:text="${totalCustomers}">0</strong><small>Total customers</small></div></div>
+            <div class="report-kpi"><span class="material-symbols-outlined">flight_takeoff</span><div><strong th:text="${totalFlights}">0</strong><small>Total flights</small></div></div>
+        </div>
+
+        <div class="report-grid">
+            <section class="sky-card report-card report-card--wide">
+                <div class="sky-card-header"><div><h3 class="sky-card-title">Bookings by day</h3><p class="sky-card-subtitle">Daily booking volume</p></div></div>
+                <div class="report-chart"><canvas id="bookingsByDayChart"></canvas></div>
+            </section>
+            <section class="sky-card report-card">
+                <div class="sky-card-header"><div><h3 class="sky-card-title">Status breakdown</h3><p class="sky-card-subtitle">All booking statuses</p></div></div>
+                <div class="report-chart report-chart--donut"><canvas id="statusChart"></canvas></div>
+            </section>
+            <section class="sky-card report-card">
+                <div class="sky-card-header"><div><h3 class="sky-card-title">Revenue by route</h3><p class="sky-card-subtitle">Confirmed, completed and boarded</p></div></div>
+                <div class="report-chart"><canvas id="revenueChart"></canvas></div>
+            </section>
+        </div>
+
+        <section class="sky-card top-routes">
+            <div class="sky-card-header"><div><h3 class="sky-card-title">Top routes</h3><p class="sky-card-subtitle">Ranked by revenue</p></div></div>
+            <div class="table-responsive">
+                <table class="sky-table">
+                    <thead><tr><th>#</th><th>Route</th><th>Bookings</th><th class="text-end">Revenue</th></tr></thead>
+                    <tbody>
+                    <tr th:if="${#lists.isEmpty(topRoutes)}"><td colspan="4">No route data available.</td></tr>
+                    <tr th:each="route,stat : ${topRoutes}">
+                        <td th:text="${stat.count}">1</td>
+                        <td><strong th:text="${route.route}">DAC -> CGP</strong><small class="route-city" th:text="${route.fullRoute}">Dhaka -> Chittagong</small></td>
+                        <td th:text="${route.totalBookings}">0</td>
+                        <td class="text-end" th:text="${'BDT ' + #numbers.formatDecimal(route.totalRevenue, 1, 'COMMA', 0, 'POINT')}">BDT 0</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script th:inline="javascript">
+    const daily = JSON.parse(/*[[${bookingsByDay}]]*/ '[]');
+    const routes = JSON.parse(/*[[${revenueByRoute}]]*/ '[]');
+    const statuses = JSON.parse(/*[[${statusBreakdown}]]*/ '[]');
+    const money = value => 'BDT ' + Number(value || 0).toLocaleString('en-IN');
+
+    new Chart(document.getElementById('bookingsByDayChart'), {
+        type: 'line',
+        data: { labels: daily.map(x => x.label), datasets: [{
+            label: 'Bookings', data: daily.map(x => x.count), borderColor: '#68519d',
+            backgroundColor: 'rgba(104,81,157,.10)', fill: true, tension: .35
+        }]},
+        options: { responsive: true, maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }}},
+            plugins: { legend: { display: false }}}
+    });
+
+    new Chart(document.getElementById('revenueChart'), {
+        type: 'bar',
+        data: { labels: routes.map(x => x.route), datasets: [{
+            label: 'Revenue', data: routes.map(x => x.revenue), backgroundColor: '#58a68b', borderRadius: 5
+        }]},
+        options: { responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => money(ctx.raw) }}},
+            scales: { y: { beginAtZero: true, ticks: { callback: value => money(value) }}}}
+    });
+
+    new Chart(document.getElementById('statusChart'), {
+        type: 'doughnut',
+        data: { labels: statuses.map(x => x.status), datasets: [{
+            data: statuses.map(x => x.count), backgroundColor: statuses.map(x => x.cssColor)
+        }]},
+        options: { responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' }}}
+    });
+
+    function printReport() { window.print(); }
+</script>
+</body>
+</html>
