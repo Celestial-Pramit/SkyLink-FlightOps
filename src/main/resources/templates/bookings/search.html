@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Find &amp; Book - SkyLink Ops</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/sidebar.css}">
+    <link rel="stylesheet" th:href="@{/css/topbar.css}">
+    <link rel="stylesheet" th:href="@{/css/bookings.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+</head>
+<body>
+<div class="app-wrapper">
+    <th:block th:replace="~{fragments/sidebar :: sidebar('findbook')}"></th:block>
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+    <div class="main-content">
+        <th:block th:replace="~{fragments/topbar :: topbar('Find &amp; Book')}"></th:block>
+        <main class="page-content">
+            <div class="sky-breadcrumb"><a th:href="@{/dashboard}">Dashboard</a><span class="material-symbols-outlined">chevron_right</span><span>Find &amp; Book</span></div>
+            <section class="search-hero">
+                <div class="search-hero__title"><span class="material-symbols-outlined">travel_explore</span><div><h1>Flight Search</h1><p>Search available flights and book for customers.</p></div></div>
+                <form th:action="@{/bookings/search}" method="get">
+                    <div class="search-form-grid">
+                        <div class="sky-form-group search-group"><label class="sky-label" for="originSelect">From</label><select id="originSelect" name="originAirportId" class="sky-select"><option value="">Any origin</option><option th:each="a : ${airports}" th:value="${a.id}" th:text="|${a.iataCode} - ${a.city}|" th:selected="${originAirportId == a.id}"></option></select></div>
+                        <div class="search-swap"><button type="button" class="swap-btn" onclick="swapAirports()" title="Swap airports"><span class="material-symbols-outlined">swap_horiz</span></button></div>
+                        <div class="sky-form-group search-group"><label class="sky-label" for="destSelect">To</label><select id="destSelect" name="destinationAirportId" class="sky-select"><option value="">Any destination</option><option th:each="a : ${airports}" th:value="${a.id}" th:text="|${a.iataCode} - ${a.city}|" th:selected="${destinationAirportId == a.id}"></option></select></div>
+                        <div class="sky-form-group search-group"><label class="sky-label" for="travelDate">Travel Date</label><input id="travelDate" type="date" name="date" class="sky-input" th:value="${selectedDate}" th:min="${#temporals.format(T(java.time.LocalDate).now(), 'yyyy-MM-dd')}"></div>
+                        <div class="search-btn-wrap"><button class="btn-sky-primary search-submit-btn" type="submit"><span class="material-symbols-outlined">search</span>Search Flights</button></div>
+                    </div>
+                    <input type="hidden" name="customerId" th:if="${preselectedCustomerId != null}" th:value="${preselectedCustomerId}">
+                </form>
+            </section>
+
+            <div th:if="${flights == null}" class="search-prompt"><span class="material-symbols-outlined search-prompt-icon">flight</span><p class="search-prompt-title">Ready to find a flight</p><p class="search-prompt-sub">Select your search criteria, then click Search Flights.</p></div>
+            <div th:if="${flights != null and #lists.isEmpty(flights)}" class="sky-card sky-empty"><span class="material-symbols-outlined">flight_land</span><p>No flights found for the selected criteria.</p><a th:href="@{/bookings/search}" class="btn-sky-ghost">Clear Search</a></div>
+
+            <div th:if="${flights != null and !#lists.isEmpty(flights)}">
+                <div class="results-header"><span class="results-count"><strong th:text="${#lists.size(flights)}">0</strong> available flight(s)</span><a th:href="@{/bookings/search}" class="btn-sky-ghost btn-sm">Clear</a></div>
+                <div class="flight-results">
+                    <article th:each="f : ${flights}" class="flight-result-card">
+                        <div class="frc-route"><div class="frc-airport"><strong class="frc-iata" th:text="${f.originAirport.iataCode}">DAC</strong><span class="frc-city" th:text="${f.originAirport.city}">Dhaka</span><strong class="frc-time" th:text="${#temporals.format(f.departureTime, 'HH:mm')}">08:30</strong></div><div class="frc-line"><div class="frc-dash"></div><span class="material-symbols-outlined">flight</span><small class="frc-duration" th:text="${f.formattedDuration}">1h 00m</small><div class="frc-dash"></div></div><div class="frc-airport"><strong class="frc-iata" th:text="${f.destinationAirport.iataCode}">CGP</strong><span class="frc-city" th:text="${f.destinationAirport.city}">Chittagong</span><strong class="frc-time" th:text="${#temporals.format(f.arrivalTime, 'HH:mm')}">09:30</strong></div></div>
+                        <div class="frc-details"><strong class="frc-flight-num" th:text="${f.flightNumber}">BS-141</strong><span class="frc-aircraft" th:text="${f.aircraft.modelName}">Boeing 737</span><span class="frc-date" th:text="${#temporals.format(f.departureTime, 'EEE, dd MMM yyyy')}">Mon, 12 Aug 2026</span></div>
+                        <div class="frc-pricing">
+                            <div class="frc-price-row"><span class="frc-price-class"><i class="frc-class-dot frc-class-dot--eco"></i>Economy</span><strong class="frc-price-value" th:text="|BDT ${#numbers.formatDecimal(f.economyPrice, 1, 'COMMA', 0, 'POINT')}|">BDT 3,500</strong><span th:class="${f.availableEconomySeats == 0} ? 'frc-seats frc-seats--sold' : (${f.availableEconomySeats < 10} ? 'frc-seats frc-seats--warn' : 'frc-seats')" th:text="${f.availableEconomySeats == 0 ? 'Sold out' : f.availableEconomySeats + ' left'}">120 left</span></div>
+                            <div class="frc-price-row" th:if="${f.aircraft.businessSeats > 0}"><span class="frc-price-class"><i class="frc-class-dot frc-class-dot--biz"></i>Business</span><strong class="frc-price-value" th:text="|BDT ${#numbers.formatDecimal(f.businessPrice, 1, 'COMMA', 0, 'POINT')}|">BDT 7,000</strong><span th:class="${f.availableBusinessSeats == 0} ? 'frc-seats frc-seats--sold' : (${f.availableBusinessSeats < 5} ? 'frc-seats frc-seats--warn' : 'frc-seats')" th:text="${f.availableBusinessSeats == 0 ? 'Sold out' : f.availableBusinessSeats + ' left'}">20 left</span></div>
+                            <span th:class="|badge-status badge-${f.status.name().toLowerCase()}|" th:text="${f.status.name()}">SCHEDULED</span>
+                            <a th:href="@{/bookings/create(flightId=${f.id},customerId=${preselectedCustomerId})}" th:class="${f.availableEconomySeats == 0 and f.availableBusinessSeats == 0} ? 'btn-sky-ghost frc-book-btn frc-book-btn--disabled' : 'btn-sky-primary frc-book-btn'" th:aria-disabled="${f.availableEconomySeats == 0 and f.availableBusinessSeats == 0}"><span class="material-symbols-outlined">book_online</span><span th:text="${f.availableEconomySeats == 0 and f.availableBusinessSeats == 0 ? 'Full' : 'Book'}">Book</span></a>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script><script th:src="@{/js/main.js}"></script>
+<script>function swapAirports(){const origin=document.getElementById('originSelect'),dest=document.getElementById('destSelect');if(!origin||!dest)return;const value=origin.value;origin.value=dest.value;dest.value=value;}</script>
+</body>
+</html>

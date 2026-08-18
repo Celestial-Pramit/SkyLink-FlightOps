@@ -8,6 +8,7 @@ import com.skylink.app.enums.BookingStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
@@ -32,7 +33,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     );
 
     @Query("SELECT b FROM Booking b ORDER BY b.createdAt DESC")
-    List<Booking> findRecent(org.springframework.data.domain.Pageable pageable);
+    List<Booking> findRecent(Pageable pageable);
+
+    List<Booking> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
     @Query("SELECT COALESCE(SUM(b.totalAmount), 0) FROM Booking b " +
            "WHERE b.status IN " +
