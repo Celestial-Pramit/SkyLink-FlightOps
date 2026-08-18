@@ -37,13 +37,6 @@ public class DashboardController {
         return "dashboard/index";
     }
 
-    @GetMapping("/superadmin/dashboard")
-    public String superAdminDashboard(Model model) {
-        model.addAttribute("pageTitle", "Super Admin");
-        model.addAttribute("activePage", "superadmin");
-        return "superadmin/dashboard";
-    }
-
     private String toJson(Object value) {
         try {
             return objectMapper.writeValueAsString(value);

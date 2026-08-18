@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"><head th:replace="~{layout/base :: head('Staff Management - SkyLink Ops')}"></head>
+<body><div th:replace="~{layout/base :: layout(~{::main})}"><main>
+    <link rel="stylesheet" th:href="@{/css/superadmin.css}"><div class="page-heading"><div><h1>Staff Management</h1><p><span th:text="${activeCount}">0</span> active staff members.</p></div><a class="btn-sky-primary" th:href="@{/admin/users/create}"><span class="material-symbols-outlined">person_add</span>Add staff</a></div>
+    <section class="sky-card"><div class="table-responsive"><table class="sky-table"><thead><tr><th>Staff member</th><th>Email</th><th>Phone</th><th>Status</th><th>Last login</th><th class="text-end">Actions</th></tr></thead><tbody><tr th:if="${#lists.isEmpty(staff)}"><td colspan="6"><div class="sky-empty"><span class="material-symbols-outlined">group_off</span><p>No staff accounts found.</p></div></td></tr><tr th:each="user : ${staff}"><td><div class="user-cell"><span class="user-avatar" th:text="${user.initials}">ST</span><strong th:text="${user.fullName}">Staff</strong></div></td><td th:text="${user.email}">email</td><td th:text="${user.phone ?: '-'}">-</td><td><span class="badge-status" th:classappend="${user.statusCssClass}" th:text="${user.status != null ? user.status : 'UNKNOWN'}">ACTIVE</span></td><td th:text="${user.lastLogin != null ? #temporals.format(user.lastLogin, 'dd MMM yyyy HH:mm') : 'Never'}">Never</td><td class="text-end"><form class="inline-form" th:action="@{/admin/users/{id}/status(id=${user.id})}" method="post" onsubmit="return confirmStaffStatus(this)"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"><input type="hidden" name="status" th:value="${user.status == T(com.skylink.app.enums.UserStatus).ACTIVE ? 'INACTIVE' : 'ACTIVE'}"><button class="btn-icon" type="submit" th:data-name="${user.fullName}" th:data-status="${user.status == T(com.skylink.app.enums.UserStatus).ACTIVE ? 'deactivate' : 'activate'}"><span class="material-symbols-outlined">toggle_on</span></button></form></td></tr></tbody></table></div></section>
+    <script>
+        function confirmStaffStatus(form) {
+            var button = form.querySelector('button');
+            var action = button.dataset.status;
+            Swal.fire({
+                title: action.charAt(0).toUpperCase() + action.slice(1) + ' staff account?',
+                text: button.dataset.name,
+                icon: action === 'deactivate' ? 'warning' : 'question',
+                showCancelButton: true,
+                confirmButtonColor: action === 'deactivate' ? '#ba1a1a' : '#68519d',
+                confirmButtonText: action.charAt(0).toUpperCase() + action.slice(1),
+                reverseButtons: true
+            }).then(function (result) {
+                if (result.isConfirmed) form.submit();
+            });
+            return false;
+        }
+    </script>
+</main></div></body></html>

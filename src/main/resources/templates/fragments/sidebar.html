@@ -49,7 +49,7 @@
     <div class="sidebar-footer">
         <a th:href="@{/settings}" class="nav-item" style="margin:0 0 4px; width:100%"><span class="material-symbols-outlined">settings</span> Settings</a>
         <div class="admin-chip">
-            <div class="admin-avatar" th:text="${#strings.substring(#authentication.name,0,2).toUpperCase()}">AD</div>
+            <div class="admin-avatar" th:text="${#authentication.name != null and #authentication.name.length() > 1 ? #authentication.name.substring(0, 2).toUpperCase() : (#authentication.name != null and #authentication.name.length() == 1 ? #authentication.name.toUpperCase() : '?')}">AD</div>
             <div style="flex:1; min-width:0">
                 <div class="admin-name" th:text="${#authentication.name}">Admin</div>
                 <div class="admin-role" sec:authorize="hasRole('ADMIN')">Administrator</div>

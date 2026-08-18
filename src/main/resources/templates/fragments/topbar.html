@@ -14,7 +14,7 @@
         <label class="topbar-search"><span class="material-symbols-outlined search-icon">search</span><input class="topbar-search-input" type="search" placeholder="Search..." id="globalSearch" aria-label="Search"></label>
         <button class="btn-icon topbar-notif" type="button" aria-label="Notifications"><span class="material-symbols-outlined">notifications</span><span class="notif-dot"></span></button>
         <div class="topbar-profile">
-            <div class="topbar-avatar" th:text="${#strings.substring(#authentication.name,0,2).toUpperCase()}">AD</div>
+            <div class="topbar-avatar" th:text="${#authentication.name != null and #authentication.name.length() > 1 ? #authentication.name.substring(0, 2).toUpperCase() : (#authentication.name != null and #authentication.name.length() == 1 ? #authentication.name.toUpperCase() : '?')}">AD</div>
             <div class="d-none d-md-block"><div class="topbar-user-name" sec:authentication="name">Admin</div><div class="topbar-user-role" sec:authorize="hasRole('ADMIN')">Administrator</div><div class="topbar-user-role" sec:authorize="hasRole('STAFF')">Receptionist</div><div class="topbar-user-role" sec:authorize="hasRole('SUPER_ADMIN')">Super Administrator</div></div>
         </div>
     </div>

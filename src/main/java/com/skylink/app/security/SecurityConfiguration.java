@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 
@@ -17,7 +18,10 @@ import javax.sql.DataSource;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfiguration {
+
+    private final CustomAccessDeniedHandler accessDeniedHandler;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -42,9 +46,9 @@ public class SecurityConfiguration {
 
     @Bean
     public SecurityFilterChain filterChain(
-            HttpSecurity http,
-            CustomAuthenticationSuccessHandler successHandler,
-            PersistentTokenRepository tokenRepository) throws Exception {
+             HttpSecurity http,
+             CustomAuthenticationSuccessHandler successHandler,
+             PersistentTokenRepository tokenRepository) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/login", "/signup", "/css/**", "/js/**", "/images/**", "/uploads/**", "/error/**").permitAll()
@@ -62,14 +66,17 @@ public class SecurityConfiguration {
                 ).hasAnyRole("ADMIN", "STAFF")
                 .anyRequest().authenticated()
             )
-            .formLogin(form -> form
+             .formLogin(form -> form
                 .loginPage("/login")
                 .usernameParameter("email")
                 .passwordParameter("password")
                 .successHandler(successHandler)
                 .failureUrl("/login?error=true")
-                .permitAll()
-            )
+                 .permitAll()
+             )
+             .exceptionHandling(exception -> exception
+                 .accessDeniedHandler(accessDeniedHandler)
+             )
             .rememberMe(remember -> remember
                 .tokenRepository(tokenRepository)
                 .tokenValiditySeconds(7 * 24 * 60 * 60)

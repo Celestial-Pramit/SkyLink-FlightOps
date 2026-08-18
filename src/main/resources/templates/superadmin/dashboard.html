@@ -4,12 +4,21 @@
 <body>
 <div th:replace="~{layout/base :: layout(~{::main})}">
     <main>
-        <div class="page-heading"><div><h1>Super Admin Workspace</h1><p>Restricted account administration area.</p></div></div>
-        <div class="sky-card" style="text-align:center;padding:60px 24px">
-            <span class="material-symbols-outlined" style="display:block;margin-bottom:16px;color:var(--secondary);font-size:64px">admin_panel_settings</span>
-            <h2 style="color:var(--primary);font:var(--font-headline-sm)">Super admin access confirmed</h2>
-            <p style="margin-top:8px;color:var(--text-muted)">User administration and audit tools arrive in Phase 8.</p>
+        <link rel="stylesheet" th:href="@{/css/superadmin.css}">
+        <div class="page-heading"><div><h1>Super Admin Workspace</h1><p>Monitor and manage privileged operations accounts.</p></div><a class="btn-sky-primary" th:href="@{/superadmin/users/create}"><span class="material-symbols-outlined">person_add</span>Create admin</a></div>
+        <div class="stat-grid superadmin-stat-grid">
+            <div class="stat-card stat-card--purple"><div class="stat-card__header"><span class="material-symbols-outlined stat-card__icon">admin_panel_settings</span></div><div class="stat-card__value" th:text="${totalAdmins}">0</div><div class="stat-card__label">Admin accounts</div><div class="stat-card__sub"><span th:text="${activeAdmins}">0</span> active</div></div>
+            <div class="stat-card stat-card--blue"><div class="stat-card__header"><span class="material-symbols-outlined stat-card__icon">badge</span></div><div class="stat-card__value" th:text="${totalStaff}">0</div><div class="stat-card__label">Staff accounts</div><div class="stat-card__sub"><span th:text="${activeStaff}">0</span> active</div></div>
+             <div class="stat-card stat-card--green"><div class="stat-card__header"><span class="material-symbols-outlined stat-card__icon">verified_user</span></div><div class="stat-card__value" th:text="${activeAdmins + activeStaff}">0</div><div class="stat-card__label">Active operators</div><div class="stat-card__sub">Ready for operations</div></div>
+             <div class="stat-card stat-card--amber"><div class="stat-card__header"><span class="material-symbols-outlined stat-card__icon">person_add</span></div><div class="stat-card__value">+</div><div class="stat-card__label">Quick action</div><div class="stat-card__sub"><a th:href="@{/superadmin/users/create}">Create admin account</a></div></div>
         </div>
+        <section class="sky-card">
+            <div class="sky-card-header"><div><h2 class="sky-card-title">Recent admin accounts</h2><p class="sky-card-subtitle">Newest privileged accounts</p></div><a class="btn-sky-ghost btn-sm" th:href="@{/superadmin/users(role='admin')}">Manage admins <span class="material-symbols-outlined">arrow_forward</span></a></div>
+            <div class="table-responsive"><table class="sky-table"><thead><tr><th>Account</th><th>Email</th><th>Status</th><th>Created</th></tr></thead><tbody>
+                <tr th:if="${#lists.isEmpty(recentAdmins)}"><td colspan="4"><div class="sky-empty"><span class="material-symbols-outlined">group_off</span><p>No admin accounts yet.</p></div></td></tr>
+                <tr th:each="user : ${recentAdmins}"><td><div class="user-cell"><span class="user-avatar" th:text="${user.initials}">AD</span><strong th:text="${user.fullName}">Admin</strong></div></td><td th:text="${user.email}">admin@example.com</td><td><span class="badge-status" th:classappend="${user.statusCssClass}" th:text="${user.status != null ? user.status : 'UNKNOWN'}">ACTIVE</span></td><td th:text="${user.createdAt != null ? #temporals.format(user.createdAt, 'dd MMM yyyy') : '-'}">-</td></tr>
+            </tbody></table></div>
+        </section>
     </main>
 </div>
 </body>
