@@ -18,7 +18,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin/users")
@@ -32,14 +37,22 @@ public class AdminUserController {
 
     @GetMapping
     public String staffList(Model model) {
-        List<UserResponseDto> staff = userService.findByRoleName("ROLE_STAFF").stream()
+        List<UserResponseDto> users = userService.findAll().stream()
+            .filter(u -> u.getRoles().stream()
+                .anyMatch(r -> "ROLE_ADMIN".equals(r.getName())
+                    || "ROLE_STAFF".equals(r.getName())))
             .map(userMapper::toResponseDto)
-            .toList();
-        model.addAttribute("staff", staff);
-        model.addAttribute("activeCount", staff.stream()
+            .sorted(Comparator.comparing(
+                UserResponseDto::getFullName, String.CASE_INSENSITIVE_ORDER))
+            .collect(Collectors.collectingAndThen(
+                Collectors.toMap(UserResponseDto::getId, Function.identity(),
+                    (a, b) -> a, LinkedHashMap::new),
+                m -> List.copyOf(m.values())));
+        model.addAttribute("staff", users);
+        model.addAttribute("activeCount", users.stream()
             .filter(user -> user.getStatus() == UserStatus.ACTIVE).count());
-        model.addAttribute("pageTitle", "Staff Management");
-        model.addAttribute("activePage", "admin-users");
+        model.addAttribute("pageTitle", "User Management");
+        model.addAttribute("activePage", "users");
         return "admin/staff-list";
     }
 
