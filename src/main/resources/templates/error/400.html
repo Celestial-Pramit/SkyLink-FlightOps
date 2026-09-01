@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>400 - Bad Request - SkyLink Ops</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <style>
+        body { display:flex; align-items:center; justify-content:center; min-height:100vh; background:var(--background); }
+        .error-page { text-align:center; padding:var(--space-2xl); max-width:480px; }
+        .error-code { font:700 96px/1 var(--font-family); color:var(--outline-variant); letter-spacing:-.04em; margin-bottom:var(--space-md); }
+        .error-icon { font-size:64px; color:var(--badge-pending-txt); display:block; margin-bottom:var(--space-md); }
+        .error-title { font:var(--font-headline-sm); color:var(--primary); margin-bottom:var(--space-sm); }
+        .error-sub { font:var(--font-body-sm); color:var(--on-surface-variant); margin-bottom:var(--space-xl); line-height:1.6; }
+    </style>
+</head>
+<body>
+<div class="error-page">
+    <div class="error-code">400</div>
+    <span class="material-symbols-outlined error-icon">warning</span>
+    <h1 class="error-title">Bad Request</h1>
+    <p class="error-sub">The request could not be understood by the server. Please go back and try again, or return to the dashboard.</p>
+    <a th:href="@{/dashboard}" class="btn-sky-primary" style="display:inline-flex;align-items:center;gap:6px;padding:10px 24px">
+        <span class="material-symbols-outlined">arrow_back</span> Back to Dashboard
+    </a>
+</div>
+</body>
+</html>

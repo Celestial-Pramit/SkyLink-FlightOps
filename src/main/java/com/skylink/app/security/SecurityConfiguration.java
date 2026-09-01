@@ -67,6 +67,8 @@ public class SecurityConfiguration {
                     "/customers/delete/**"
                 ).hasRole("ADMIN")
                 .requestMatchers("/payment/**").hasAnyRole("ADMIN", "STAFF")
+                .requestMatchers("/settings", "/settings/**")
+                    .hasAnyRole("SUPER_ADMIN", "ADMIN", "STAFF")
                 .requestMatchers(
                     "/dashboard", "/flights", "/flights/{id}",
                     "/aircraft", "/aircraft/{id}", "/bookings/**",
