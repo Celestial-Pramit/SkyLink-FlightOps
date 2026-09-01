@@ -3,6 +3,7 @@ package com.skylink.app.service.impl;
 import com.skylink.app.dto.BookingCreateDto;
 import com.skylink.app.entity.AppUser;
 import com.skylink.app.entity.Booking;
+import com.skylink.app.entity.BookingStatusHistory;
 import com.skylink.app.entity.Customer;
 import com.skylink.app.entity.Flight;
 import com.skylink.app.enums.BookingStatus;
@@ -11,8 +12,10 @@ import com.skylink.app.enums.SeatClass;
 import com.skylink.app.exception.BusinessRuleException;
 import com.skylink.app.exception.ResourceNotFoundException;
 import com.skylink.app.repository.BookingRepository;
+import com.skylink.app.repository.BookingStatusHistoryRepository;
 import com.skylink.app.repository.CustomerRepository;
 import com.skylink.app.repository.FlightRepository;
+import com.skylink.app.service.IActivityLogService;
 import com.skylink.app.service.IBookingService;
 import com.skylink.app.service.IFlightService;
 import lombok.RequiredArgsConstructor;
@@ -34,9 +37,11 @@ import java.util.Optional;
 public class BookingServiceImpl implements IBookingService {
 
     private final BookingRepository bookingRepository;
+    private final BookingStatusHistoryRepository historyRepository;
     private final FlightRepository flightRepository;
     private final CustomerRepository customerRepository;
     private final IFlightService flightService;
+    private final IActivityLogService activityLogService;
 
     @Override
     @Transactional(readOnly = true)
@@ -77,10 +82,9 @@ public class BookingServiceImpl implements IBookingService {
     @Override
     @Transactional(readOnly = true)
     public List<Booking> findRecent(int limit) {
-        if (limit <= 0) {
-            return List.of();
-        }
-        return bookingRepository.findAllByOrderByCreatedAtDesc(PageRequest.of(0, limit));
+        if (limit <= 0) return List.of();
+        return bookingRepository.findAllByOrderByCreatedAtDesc(
+            PageRequest.of(0, limit));
     }
 
     @Override
@@ -93,28 +97,36 @@ public class BookingServiceImpl implements IBookingService {
     @Override
     public Booking createBooking(BookingCreateDto dto, AppUser createdBy) {
         if (dto.getPassengerCount() < 1 || dto.getPassengerCount() > 9) {
-            throw new BusinessRuleException("Passenger count must be between 1 and 9.");
+            throw new BusinessRuleException(
+                "Passenger count must be between 1 and 9.");
         }
 
         Flight flight = flightRepository.findById(dto.getFlightId())
-            .orElseThrow(() -> new ResourceNotFoundException("Flight not found: " + dto.getFlightId()));
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Flight not found: " + dto.getFlightId()));
         Customer customer = customerRepository.findById(dto.getCustomerId())
-            .orElseThrow(() -> new ResourceNotFoundException("Customer not found: " + dto.getCustomerId()));
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Customer not found: " + dto.getCustomerId()));
 
-        if (flight.getStatus() == FlightStatus.CANCELLED || flight.getStatus() == FlightStatus.ARRIVED
+        if (flight.getStatus() == FlightStatus.CANCELLED
+                || flight.getStatus() == FlightStatus.ARRIVED
                 || flight.getStatus() == FlightStatus.DEPARTED) {
-            throw new BusinessRuleException("Cannot book a flight that is no longer schedulable.");
+            throw new BusinessRuleException(
+                "Cannot book a flight that is no longer schedulable.");
         }
 
-        int available = flightService.getAvailableSeats(flight.getId(), dto.getSeatClass());
+        int available = flightService.getAvailableSeats(
+            flight.getId(), dto.getSeatClass());
         if (available < dto.getPassengerCount()) {
-            throw new BusinessRuleException("Not enough " + dto.getSeatClass().name().toLowerCase()
+            throw new BusinessRuleException("Not enough "
+                + dto.getSeatClass().name().toLowerCase()
                 + " seats available. Only " + available + " seat(s) left.");
         }
 
         BigDecimal unitPrice = getPriceForClass(flight, dto.getSeatClass());
         if (unitPrice == null) {
-            throw new BusinessRuleException("Price is not configured for the selected seat class.");
+            throw new BusinessRuleException(
+                "Price is not configured for the selected seat class.");
         }
 
         String reference = generateReference();
@@ -125,15 +137,36 @@ public class BookingServiceImpl implements IBookingService {
             .createdBy(createdBy)
             .seatClass(dto.getSeatClass())
             .passengerCount(dto.getPassengerCount())
-            .totalAmount(unitPrice.multiply(BigDecimal.valueOf(dto.getPassengerCount())))
+            .totalAmount(unitPrice.multiply(
+                BigDecimal.valueOf(dto.getPassengerCount())))
             .status(BookingStatus.CONFIRMED)
             .notes(dto.getNotes())
             .build();
 
         Booking saved = bookingRepository.save(booking);
-        flightService.decrementSeats(flight.getId(), dto.getSeatClass(), dto.getPassengerCount());
-        log.info("Booking created: {} for customer {} on flight {}", reference,
-            customer.getFullName(), flight.getFlightNumber());
+        flightService.decrementSeats(
+            flight.getId(), dto.getSeatClass(), dto.getPassengerCount());
+
+        historyRepository.save(BookingStatusHistory.of(
+            saved,
+            BookingStatus.CONFIRMED,
+            createdBy.getEmail(),
+            createdBy.getFullName(),
+            "Booking created for " + customer.getFullName()
+            + " on " + flight.getFlightNumber()));
+
+        activityLogService.log(
+            createdBy.getEmail(), createdBy.getFullName(),
+            "CREATE", "BOOKING", reference,
+            "Booked " + flight.getFlightNumber()
+            + " (" + flight.getOriginAirport().getIataCode()
+            + "→" + flight.getDestinationAirport().getIataCode()
+            + ") for " + customer.getFullName()
+            + " — " + dto.getSeatClass().name()
+            + " × " + dto.getPassengerCount());
+
+        log.info("Booking created: {} for {} on {}",
+            reference, customer.getFullName(), flight.getFlightNumber());
         return saved;
     }
 
@@ -145,74 +178,141 @@ public class BookingServiceImpl implements IBookingService {
         if (newStatus == null) {
             throw new BusinessRuleException("Booking status is required.");
         }
-        if (oldStatus == BookingStatus.CANCELLED && newStatus != BookingStatus.CANCELLED) {
-            throw new BusinessRuleException("A cancelled booking cannot be reactivated.");
+        if (oldStatus == BookingStatus.CANCELLED
+                && newStatus != BookingStatus.CANCELLED) {
+            throw new BusinessRuleException(
+                "A cancelled booking cannot be reactivated.");
         }
 
         booking.setStatus(newStatus);
-        if (newStatus == BookingStatus.CANCELLED && oldStatus != BookingStatus.CANCELLED) {
-            flightService.incrementSeats(booking.getFlight().getId(), booking.getSeatClass(), booking.getPassengerCount());
+        if (newStatus == BookingStatus.CANCELLED
+                && oldStatus != BookingStatus.CANCELLED) {
+            flightService.incrementSeats(
+                booking.getFlight().getId(),
+                booking.getSeatClass(),
+                booking.getPassengerCount());
             booking.setCancelledAt(LocalDateTime.now());
         }
-        return bookingRepository.save(booking);
+
+        Booking saved = bookingRepository.save(booking);
+
+        historyRepository.save(BookingStatusHistory.of(
+            saved,
+            newStatus,
+            "system",
+            "Admin",
+            "Status changed from " + oldStatus.name()
+            + " to " + newStatus.name()));
+
+        activityLogService.log(
+            "system", "System",
+            "STATUS_CHANGE", "BOOKING", booking.getBookingReference(),
+            "Status changed " + oldStatus.name()
+            + " → " + newStatus.name()
+            + " for " + booking.getBookingReference());
+
+        return saved;
     }
 
     @Override
     public void cancelBooking(Long id, AppUser requestedBy) {
         Booking booking = getBooking(id);
-        boolean admin = requestedBy.hasRole("ROLE_ADMIN") || requestedBy.hasRole("ROLE_SUPER_ADMIN");
+        boolean admin = requestedBy.hasRole("ROLE_ADMIN")
+            || requestedBy.hasRole("ROLE_SUPER_ADMIN");
 
-        if (!admin && (booking.getCreatedBy() == null || !booking.getCreatedBy().getId().equals(requestedBy.getId()))) {
-            throw new BusinessRuleException("You can only cancel bookings you created.");
+        if (!admin && (booking.getCreatedBy() == null
+                || !booking.getCreatedBy().getId()
+                    .equals(requestedBy.getId()))) {
+            throw new BusinessRuleException(
+                "You can only cancel bookings you created.");
         }
         if (booking.getStatus() == BookingStatus.CANCELLED) {
-            throw new BusinessRuleException("Booking " + booking.getBookingReference() + " is already cancelled.");
+            throw new BusinessRuleException("Booking "
+                + booking.getBookingReference()
+                + " is already cancelled.");
         }
-        if (booking.getStatus() == BookingStatus.COMPLETED || booking.getStatus() == BookingStatus.BOARDED) {
-            throw new BusinessRuleException("Cannot cancel a booking that is "
+        if (booking.getStatus() == BookingStatus.COMPLETED
+                || booking.getStatus() == BookingStatus.BOARDED) {
+            throw new BusinessRuleException(
+                "Cannot cancel a booking that is "
                 + booking.getStatus().name().toLowerCase() + ".");
         }
 
         LocalDateTime departure = booking.getFlight().getDepartureTime();
-        if (departure != null && !LocalDateTime.now().isBefore(departure.minusHours(2))) {
-            throw new BusinessRuleException("Cannot cancel booking " + booking.getBookingReference()
+        if (departure != null
+                && !LocalDateTime.now().isBefore(departure.minusHours(2))) {
+            throw new BusinessRuleException("Cannot cancel booking "
+                + booking.getBookingReference()
                 + " - departure is less than 2 hours away.");
         }
 
         booking.setStatus(BookingStatus.CANCELLED);
         booking.setCancelledAt(LocalDateTime.now());
         bookingRepository.save(booking);
-        flightService.incrementSeats(booking.getFlight().getId(), booking.getSeatClass(), booking.getPassengerCount());
-        log.info("Booking {} cancelled by {}", booking.getBookingReference(), requestedBy.getEmail());
+        flightService.incrementSeats(
+            booking.getFlight().getId(),
+            booking.getSeatClass(),
+            booking.getPassengerCount());
+
+        historyRepository.save(BookingStatusHistory.of(
+            booking,
+            BookingStatus.CANCELLED,
+            requestedBy.getEmail(),
+            requestedBy.getFullName(),
+            "Cancelled by " + requestedBy.getFullName()));
+
+        activityLogService.log(
+            requestedBy.getEmail(), requestedBy.getFullName(),
+            "CANCEL", "BOOKING", booking.getBookingReference(),
+            "Cancelled booking " + booking.getBookingReference()
+            + " for " + booking.getCustomer().getFullName());
+
+        log.info("Booking {} cancelled by {}",
+            booking.getBookingReference(), requestedBy.getEmail());
     }
 
     @Override
     public void deleteBooking(Long id) {
         Booking booking = getBooking(id);
         if (booking.getStatus() != BookingStatus.CANCELLED) {
-            flightService.incrementSeats(booking.getFlight().getId(), booking.getSeatClass(), booking.getPassengerCount());
+            flightService.incrementSeats(
+                booking.getFlight().getId(),
+                booking.getSeatClass(),
+                booking.getPassengerCount());
         }
+        String ref = booking.getBookingReference();
+
+        historyRepository.deleteAll(
+            historyRepository.findByBookingOrderByChangedAtAsc(booking));
+
         bookingRepository.delete(booking);
+
+        activityLogService.log(
+            "system", "System",
+            "DELETE", "BOOKING", ref,
+            "Deleted booking " + ref);
     }
 
     private Booking getBooking(Long id) {
         return bookingRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Booking not found: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Booking not found: " + id));
     }
 
     private BigDecimal getPriceForClass(Flight flight, SeatClass seatClass) {
         return switch (seatClass) {
-            case ECONOMY -> flight.getEconomyPrice();
-            case BUSINESS -> flight.getBusinessPrice();
+            case ECONOMY     -> flight.getEconomyPrice();
+            case BUSINESS    -> flight.getBusinessPrice();
             case FIRST_CLASS -> flight.getFirstClassPrice();
         };
     }
 
     private String generateReference() {
-        int year = LocalDate.now().getYear();
+        int year  = LocalDate.now().getYear();
         long next = bookingRepository.count() + 1;
         String reference = formatReference(year, next);
-        while (bookingRepository.findByBookingReference(reference).isPresent()) {
+        while (bookingRepository
+                .findByBookingReference(reference).isPresent()) {
             reference = formatReference(year, ++next);
         }
         return reference;

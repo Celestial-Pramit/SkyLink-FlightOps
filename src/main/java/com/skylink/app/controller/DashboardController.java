@@ -32,6 +32,7 @@ public class DashboardController {
             .map(WeeklyBookingPoint::label).toList()));
         model.addAttribute("chartCounts", toJson(trend.stream()
             .map(WeeklyBookingPoint::count).toList()));
+        model.addAttribute("urgentFlights", dashboardService.getUrgentFlights());
         model.addAttribute("pageTitle", "Dashboard");
         model.addAttribute("activePage", "dashboard");
         return "dashboard/index";

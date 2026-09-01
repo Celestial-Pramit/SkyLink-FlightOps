@@ -121,6 +121,16 @@ public class DashboardServiceImpl implements IDashboardService {
         return result;
     }
 
+    @Override
+    public List<Flight> getUrgentFlights() {
+        LocalDateTime now = LocalDateTime.now();
+        return flightRepository
+            .findByDepartureTimeAfterAndStatusOrderByDepartureTimeAsc(now, FlightStatus.SCHEDULED)
+            .stream()
+            .filter(flight -> flight.getDepartureTime().isBefore(now.plusHours(2)))
+            .toList();
+    }
+
     private LocalDate toLocalDate(Object raw) {
         if (raw instanceof java.sql.Date sqlDate) {
             return sqlDate.toLocalDate();

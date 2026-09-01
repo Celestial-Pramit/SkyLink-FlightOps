@@ -47,28 +47,37 @@ VALUES
     (7, 'S2-AJV', 'Airbus A330-200', 'Airbus', 'A332', 251, 197, 42, 12, 'RETIRED', NOW()),
     (8, 'S2-AGQ', 'ATR 72-600', 'ATR', 'AT76', 68, 68, 0, 0, 'MAINTENANCE', NOW());
 
-INSERT IGNORE INTO flights
+INSERT INTO flights
     (id, flight_number, origin_airport_id, destination_airport_id,
      departure_time, arrival_time, aircraft_id, status,
      economy_price, business_price, first_class_price,
      available_economy_seats, available_business_seats,
      available_first_class_seats, created_at)
 VALUES
-    (1, 'BS-141', 1, 2, DATE_ADD(NOW(), INTERVAL 2 HOUR), DATE_ADD(NOW(), INTERVAL 3 HOUR), 1, 'SCHEDULED', 3500.00, 7000.00, 0.00, 120, 20, 0, NOW()),
-    (2, 'BS-142', 2, 1, DATE_ADD(NOW(), INTERVAL 4 HOUR), DATE_ADD(NOW(), INTERVAL 5 HOUR), 2, 'SCHEDULED', 3500.00, 7000.00, 0.00, 100, 18, 0, NOW()),
-    (3, 'BG-022', 1, 3, DATE_ADD(NOW(), INTERVAL 6 HOUR), DATE_ADD(NOW(), INTERVAL 8 HOUR), 1, 'SCHEDULED', 4200.00, 8500.00, 0.00, 130, 22, 0, NOW()),
-    (4, 'BS-305', 1, 4, DATE_ADD(NOW(), INTERVAL 8 HOUR), DATE_ADD(NOW(), INTERVAL 9 HOUR), 5, 'SCHEDULED', 2800.00, 0.00, 0.00, 70, 0, 0, NOW()),
-    (5, 'BG-101', 1, 5, DATE_ADD(NOW(), INTERVAL 10 HOUR), DATE_ADD(NOW(), INTERVAL 11 HOUR), 5, 'SCHEDULED', 2500.00, 0.00, 0.00, 60, 0, 0, NOW()),
-    (6, 'BS-212', 3, 1, DATE_ADD(NOW(), INTERVAL 12 HOUR), DATE_ADD(NOW(), INTERVAL 14 HOUR), 2, 'SCHEDULED', 4200.00, 8500.00, 0.00, 110, 20, 0, NOW()),
-    (7, 'BS-401', 1, 6, DATE_ADD(NOW(), INTERVAL 1 DAY), DATE_ADD(NOW(), INTERVAL 1 DAY), 6, 'SCHEDULED', 18000.00, 35000.00, 65000.00, 280, 60, 20, NOW()),
-    (8, 'BG-502', 1, 7, DATE_ADD(NOW(), INTERVAL 2 DAY), DATE_ADD(NOW(), INTERVAL 2 DAY), 6, 'SCHEDULED', 16000.00, 32000.00, 58000.00, 300, 68, 22, NOW()),
-    (9, 'BS-100', 1, 2, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 23 HOUR), 1, 'ARRIVED', 3500.00, 7000.00, 0.00, 0, 0, 0, NOW()),
-    (10, 'BS-101', 2, 1, DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 47 HOUR), 2, 'ARRIVED', 3500.00, 7000.00, 0.00, 0, 0, 0, NOW()),
-    (11, 'BG-020', 1, 3, DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 71 HOUR), 1, 'ARRIVED', 4200.00, 8500.00, 0.00, 0, 0, 0, NOW()),
-    (12, 'BS-300', 1, 4, DATE_SUB(NOW(), INTERVAL 4 DAY), DATE_SUB(NOW(), INTERVAL 95 HOUR), 5, 'ARRIVED', 2800.00, 0.00, 0.00, 0, 0, 0, NOW()),
-    (13, 'BG-099', 1, 5, DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 119 HOUR), 5, 'CANCELLED', 2500.00, 0.00, 0.00, 60, 0, 0, NOW()),
-    (14, 'BS-210', 3, 1, DATE_SUB(NOW(), INTERVAL 6 DAY), DATE_SUB(NOW(), INTERVAL 143 HOUR), 2, 'ARRIVED', 4200.00, 8500.00, 0.00, 0, 0, 0, NOW()),
-    (15, 'BS-199', 1, 2, DATE_SUB(NOW(), INTERVAL 7 DAY), DATE_SUB(NOW(), INTERVAL 167 HOUR), 4, 'ARRIVED', 3500.00, 7000.00, 0.00, 0, 0, 0, NOW());
+    (1, 'BS-141', 1, 2, DATE_ADD(NOW(), INTERVAL 1 DAY), DATE_ADD(NOW(), INTERVAL 1 DAY), 1, 'SCHEDULED', 3500.00, 7000.00, 9000.00, 120, 20, 0, NOW()),
+    (2, 'BS-142', 2, 1, DATE_ADD(NOW(), INTERVAL 2 DAY), DATE_ADD(NOW(), INTERVAL 2 DAY), 2, 'SCHEDULED', 3500.00, 7000.00, 9000.00, 100, 18, 0, NOW()),
+    (3, 'BG-022', 1, 3, DATE_ADD(NOW(), INTERVAL 3 DAY), DATE_ADD(NOW(), INTERVAL 3 DAY), 1, 'SCHEDULED', 4200.00, 8500.00, 10500.00, 130, 22, 0, NOW()),
+    (4, 'BS-305', 1, 4, DATE_ADD(NOW(), INTERVAL 4 DAY), DATE_ADD(NOW(), INTERVAL 4 DAY), 5, 'SCHEDULED', 2800.00, 5200.00, 6500.00, 70, 0, 0, NOW()),
+    (5, 'BG-101', 1, 5, DATE_ADD(NOW(), INTERVAL 5 DAY), DATE_ADD(NOW(), INTERVAL 5 DAY), 5, 'SCHEDULED', 2500.00, 4800.00, 6000.00, 60, 0, 0, NOW()),
+    (6, 'BS-212', 3, 1, DATE_ADD(NOW(), INTERVAL 6 DAY), DATE_ADD(NOW(), INTERVAL 6 DAY), 2, 'SCHEDULED', 4200.00, 8500.00, 10500.00, 110, 20, 0, NOW()),
+    (7, 'BS-401', 1, 6, DATE_ADD(NOW(), INTERVAL 7 DAY), DATE_ADD(NOW(), INTERVAL 7 DAY), 6, 'SCHEDULED', 18000.00, 35000.00, 65000.00, 280, 60, 18, NOW()),
+    (8, 'BG-502', 1, 7, DATE_ADD(NOW(), INTERVAL 10 DAY), DATE_ADD(NOW(), INTERVAL 10 DAY), 6, 'SCHEDULED', 16000.00, 32000.00, 58000.00, 300, 68, 20, NOW()),
+    (9, 'BS-100', 1, 2, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 23 HOUR), 1, 'ARRIVED', 3500.00, 7000.00, 9000.00, 0, 0, 0, NOW()),
+    (10, 'BS-101', 2, 1, DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 47 HOUR), 2, 'ARRIVED', 3500.00, 7000.00, 9000.00, 0, 0, 0, NOW()),
+    (11, 'BG-020', 1, 3, DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 71 HOUR), 1, 'ARRIVED', 4200.00, 8500.00, 10500.00, 0, 0, 0, NOW()),
+    (12, 'BS-300', 1, 4, DATE_SUB(NOW(), INTERVAL 4 DAY), DATE_SUB(NOW(), INTERVAL 95 HOUR), 5, 'ARRIVED', 2800.00, 5200.00, 6500.00, 0, 0, 0, NOW()),
+    (13, 'BG-099', 1, 5, DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 119 HOUR), 5, 'CANCELLED', 2500.00, 4800.00, 6000.00, 60, 0, 0, NOW()),
+    (14, 'BS-210', 3, 1, DATE_SUB(NOW(), INTERVAL 6 DAY), DATE_SUB(NOW(), INTERVAL 143 HOUR), 2, 'ARRIVED', 4200.00, 8500.00, 10500.00, 0, 0, 0, NOW()),
+    (15, 'BS-199', 1, 2, DATE_SUB(NOW(), INTERVAL 7 DAY), DATE_SUB(NOW(), INTERVAL 167 HOUR), 4, 'ARRIVED', 3500.00, 7000.00, 9000.00, 0, 0, 0, NOW())
+ON DUPLICATE KEY UPDATE
+    departure_time = VALUES(departure_time),
+    arrival_time = VALUES(arrival_time),
+    economy_price = VALUES(economy_price),
+    business_price = VALUES(business_price),
+    first_class_price = VALUES(first_class_price),
+    available_economy_seats = VALUES(available_economy_seats),
+    available_business_seats = VALUES(available_business_seats),
+    available_first_class_seats = VALUES(available_first_class_seats);
 
 INSERT IGNORE INTO customers
     (id, full_name, email, phone, nid_or_passport, date_of_birth, address, registered_at)
@@ -128,3 +137,33 @@ VALUES
     (28, 'SKY-20260028', 3, 8, 3, 'ECONOMY', 2, 8400.00, 'CONFIRMED', DATE_SUB(NOW(), INTERVAL 6 HOUR)),
     (29, 'SKY-20260029', 4, 9, 2, 'ECONOMY', 1, 2800.00, 'PENDING', DATE_SUB(NOW(), INTERVAL 7 HOUR)),
     (30, 'SKY-20260030', 5, 10, 3, 'ECONOMY', 2, 5000.00, 'CONFIRMED', DATE_SUB(NOW(), INTERVAL 8 HOUR));
+
+INSERT IGNORE INTO activity_logs
+    (id, actor_email, actor_name, action, entity_type, entity_id, detail, created_at)
+VALUES
+    (1, 'admin@skylink.com', 'System Admin', 'LOGIN', 'USER', '2', 'Successful sign in', DATE_SUB(NOW(), INTERVAL 5 MINUTE)),
+    (2, 'admin@skylink.com', 'System Admin', 'CREATE', 'BOOKING', '1', 'Created booking SKY-20260001', DATE_SUB(NOW(), INTERVAL 4 MINUTE)),
+    (3, 'staff@skylink.com', 'Reception Staff', 'UPDATE', 'BOOKING', '2', 'Marked booking SKY-20260002 pending', DATE_SUB(NOW(), INTERVAL 3 MINUTE)),
+    (4, 'admin@skylink.com', 'System Admin', 'CREATE', 'CUSTOMER', '1', 'Registered customer Rafiq Hossain', DATE_SUB(NOW(), INTERVAL 2 MINUTE)),
+    (5, 'superadmin@skylink.com', 'Super Admin', 'UPDATE', 'AIRCRAFT', '6', 'Updated seat config for S2-AFF', DATE_SUB(NOW(), INTERVAL 1 MINUTE)),
+    (6, 'admin@skylink.com', 'System Admin', 'CREATE', 'FLIGHT', '7', 'Created flight BS-401', DATE_SUB(NOW(), INTERVAL 30 SECOND)),
+    (7, 'staff@skylink.com', 'Reception Staff', 'DELETE', 'BOOKING', '13', 'Cancelled booking SKY-20260013', DATE_SUB(NOW(), INTERVAL 20 SECOND)),
+    (8, 'admin@skylink.com', 'System Admin', 'CREATE', 'USER', '3', 'Added staff account', DATE_SUB(NOW(), INTERVAL 10 SECOND)),
+    (9, 'superadmin@skylink.com', 'Super Admin', 'UPDATE', 'USER', '2', 'Reset admin password', DATE_SUB(NOW(), INTERVAL 5 SECOND)),
+    (10, 'admin@skylink.com', 'System Admin', 'LOGIN', 'USER', '2', 'Successful sign in', NOW());
+
+INSERT IGNORE INTO booking_status_history
+    (id, booking_id, status, changed_by, changed_by_name, note, changed_at)
+VALUES
+    (1, 1, 'PENDING', 'admin@skylink.com', 'System Admin', 'Booking created', DATE_SUB(NOW(), INTERVAL 6 HOUR)),
+    (2, 1, 'CONFIRMED', 'admin@skylink.com', 'System Admin', 'Payment confirmed', DATE_SUB(NOW(), INTERVAL 5 HOUR)),
+    (3, 2, 'PENDING', 'staff@skylink.com', 'Reception Staff', 'Booking created', DATE_SUB(NOW(), INTERVAL 4 HOUR)),
+    (4, 2, 'CONFIRMED', 'staff@skylink.com', 'Reception Staff', 'Payment received', DATE_SUB(NOW(), INTERVAL 3 HOUR)),
+    (5, 3, 'PENDING', 'admin@skylink.com', 'System Admin', 'Booking created', DATE_SUB(NOW(), INTERVAL 2 HOUR)),
+    (6, 3, 'CONFIRMED', 'admin@skylink.com', 'System Admin', 'Confirmed for 2 passengers', DATE_SUB(NOW(), INTERVAL 1 HOUR)),
+    (7, 6, 'PENDING', 'admin@skylink.com', 'System Admin', 'Booking created', DATE_SUB(NOW(), INTERVAL 2 DAY)),
+    (8, 6, 'CONFIRMED', 'admin@skylink.com', 'System Admin', 'Payment confirmed', DATE_SUB(NOW(), INTERVAL 1 DAY)),
+    (9, 6, 'COMPLETED', 'admin@skylink.com', 'System Admin', 'Flight completed', DATE_SUB(NOW(), INTERVAL 1 DAY)),
+    (10, 13, 'PENDING', 'staff@skylink.com', 'Reception Staff', 'Booking created', DATE_SUB(NOW(), INTERVAL 3 DAY)),
+    (11, 13, 'CONFIRMED', 'staff@skylink.com', 'Reception Staff', 'Payment received', DATE_SUB(NOW(), INTERVAL 3 DAY)),
+    (12, 13, 'CANCELLED', 'admin@skylink.com', 'System Admin', 'Cancelled by customer request', DATE_SUB(NOW(), INTERVAL 2 DAY));
