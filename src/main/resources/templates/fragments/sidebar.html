@@ -4,7 +4,9 @@
 <body>
 <aside id="mainSidebar" class="sidebar" th:fragment="sidebar(activePage)">
 
-    <div class="sidebar-logo">
+    <a class="sidebar-logo" style="text-decoration:none"
+       th:with="homeUrl=${#authorization.expression('hasRole(''ROLE_SUPER_ADMIN'')') ? '/superadmin/dashboard' : '/dashboard'}"
+       th:href="@{${homeUrl}}">
         <div class="sidebar-logo-icon">
             <span class="material-symbols-outlined">flight_takeoff</span>
         </div>
@@ -12,7 +14,7 @@
             <div class="sidebar-logo-name">SkyLink</div>
             <div class="sidebar-logo-sub">Ops Management</div>
         </div>
-    </div>
+    </a>
 
     <th:block sec:authorize="hasAnyRole('ADMIN','STAFF')">
         <a th:href="@{/bookings/search}" class="sidebar-cta">
