@@ -79,6 +79,40 @@ ON DUPLICATE KEY UPDATE
     available_business_seats = VALUES(available_business_seats),
     available_first_class_seats = VALUES(available_first_class_seats);
 
+INSERT INTO flights
+    (id, flight_number, origin_airport_id, destination_airport_id,
+     departure_time, arrival_time, aircraft_id, status,
+     economy_price, business_price, first_class_price,
+     available_economy_seats, available_business_seats,
+     available_first_class_seats, created_at)
+VALUES
+    (16, 'BS-201', 1, 2, DATE_ADD(NOW(), INTERVAL 1 DAY), DATE_ADD(NOW(), INTERVAL 1 DAY), 1, 'SCHEDULED', 3500.00, 7000.00, 9000.00, 138, 24, 0, NOW()),
+    (17, 'BS-202', 2, 1, DATE_ADD(NOW(), INTERVAL 1 DAY), DATE_ADD(NOW(), INTERVAL 1 DAY), 2, 'SCHEDULED', 3500.00, 7000.00, 9000.00, 126, 24, 0, NOW()),
+    (18, 'BS-203', 3, 1, DATE_ADD(NOW(), INTERVAL 1 DAY), DATE_ADD(NOW(), INTERVAL 1 DAY), 5, 'SCHEDULED', 2800.00, 5200.00, 6500.00, 74, 0, 0, NOW()),
+    (19, 'BS-204', 6, 1, DATE_ADD(NOW(), INTERVAL 1 DAY), DATE_ADD(NOW(), INTERVAL 1 DAY), 6, 'SCHEDULED', 18000.00, 35000.00, 65000.00, 304, 70, 22, NOW()),
+    (20, 'BS-211', 1, 8, DATE_ADD(NOW(), INTERVAL 2 DAY), DATE_ADD(NOW(), INTERVAL 2 DAY), 6, 'SCHEDULED', 21000.00, 40000.00, 75000.00, 304, 70, 22, NOW()),
+    (21, 'BS-213', 4, 1, DATE_ADD(NOW(), INTERVAL 2 DAY), DATE_ADD(NOW(), INTERVAL 2 DAY), 5, 'SCHEDULED', 2600.00, 5000.00, 6000.00, 74, 0, 0, NOW()),
+    (22, 'BS-214', 5, 1, DATE_ADD(NOW(), INTERVAL 2 DAY), DATE_ADD(NOW(), INTERVAL 2 DAY), 5, 'SCHEDULED', 2800.00, 5200.00, 6500.00, 74, 0, 0, NOW()),
+    (23, 'BS-215', 7, 1, DATE_ADD(NOW(), INTERVAL 2 DAY), DATE_ADD(NOW(), INTERVAL 2 DAY), 6, 'SCHEDULED', 17000.00, 33000.00, 60000.00, 304, 70, 22, NOW()),
+    (24, 'BS-221', 1, 6, DATE_ADD(NOW(), INTERVAL 3 DAY), DATE_ADD(NOW(), INTERVAL 3 DAY), 6, 'SCHEDULED', 18000.00, 35000.00, 65000.00, 304, 70, 22, NOW()),
+    (25, 'BS-222', 1, 3, DATE_ADD(NOW(), INTERVAL 3 DAY), DATE_ADD(NOW(), INTERVAL 3 DAY), 5, 'SCHEDULED', 2800.00, 5200.00, 6500.00, 74, 0, 0, NOW()),
+    (26, 'BS-223', 8, 1, DATE_ADD(NOW(), INTERVAL 3 DAY), DATE_ADD(NOW(), INTERVAL 3 DAY), 6, 'SCHEDULED', 21000.00, 40000.00, 75000.00, 304, 70, 22, NOW()),
+    (27, 'BS-224', 2, 8, DATE_ADD(NOW(), INTERVAL 3 DAY), DATE_ADD(NOW(), INTERVAL 3 DAY), 4, 'SCHEDULED', 20000.00, 38000.00, 70000.00, 156, 32, 0, NOW()),
+    (28, 'BS-231', 1, 7, DATE_ADD(NOW(), INTERVAL 4 DAY), DATE_ADD(NOW(), INTERVAL 4 DAY), 6, 'SCHEDULED', 17000.00, 33000.00, 60000.00, 304, 70, 22, NOW()),
+    (29, 'BS-232', 3, 1, DATE_ADD(NOW(), INTERVAL 4 DAY), DATE_ADD(NOW(), INTERVAL 4 DAY), 5, 'SCHEDULED', 2800.00, 5200.00, 6500.00, 74, 0, 0, NOW()),
+    (30, 'BS-233', 5, 1, DATE_ADD(NOW(), INTERVAL 4 DAY), DATE_ADD(NOW(), INTERVAL 4 DAY), 5, 'SCHEDULED', 2800.00, 5200.00, 6500.00, 74, 0, 0, NOW()),
+    (31, 'BS-234', 4, 2, DATE_ADD(NOW(), INTERVAL 4 DAY), DATE_ADD(NOW(), INTERVAL 4 DAY), 5, 'SCHEDULED', 3000.00, 5600.00, 7000.00, 74, 0, 0, NOW()),
+    (32, 'BS-235', 1, 5, DATE_ADD(NOW(), INTERVAL 4 DAY), DATE_ADD(NOW(), INTERVAL 4 DAY), 5, 'SCHEDULED', 2800.00, 5200.00, 6500.00, 74, 0, 0, NOW())
+ON DUPLICATE KEY UPDATE
+    departure_time = VALUES(departure_time),
+    arrival_time = VALUES(arrival_time),
+    economy_price = VALUES(economy_price),
+    business_price = VALUES(business_price),
+    first_class_price = VALUES(first_class_price),
+    available_economy_seats = VALUES(available_economy_seats),
+    available_business_seats = VALUES(available_business_seats),
+    available_first_class_seats = VALUES(available_first_class_seats);
+
 INSERT IGNORE INTO customers
     (id, full_name, email, phone, nid_or_passport, date_of_birth, address, registered_at)
 VALUES
