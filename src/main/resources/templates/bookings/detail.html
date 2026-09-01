@@ -11,6 +11,30 @@
     <link rel="stylesheet" th:href="@{/css/bookings.css}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <style>
+        /* ── Status Timeline ── */
+        .status-timeline-section { margin-top: var(--space-lg); background: var(--surface); border: 1px solid var(--outline-variant); border-radius: var(--radius-md); padding: var(--space-lg); }
+        .status-timeline-title { display: flex; align-items: center; gap: 6px; font: var(--font-label-md); color: var(--primary); text-transform: uppercase; letter-spacing: .05em; margin-bottom: var(--space-lg); padding-bottom: var(--space-sm); border-bottom: 1px solid var(--outline-variant); }
+        .status-timeline-title .material-symbols-outlined { font-size: 16px; }
+        .timeline { position: relative; padding-left: 40px; }
+        .timeline::before { content: ''; position: absolute; left: 15px; top: 8px; bottom: 8px; width: 2px; background: var(--outline-variant); }
+        .timeline-item { position: relative; padding-bottom: var(--space-lg); }
+        .timeline-item:last-child { padding-bottom: 0; }
+        .timeline-dot { position: absolute; left: -32px; top: 2px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; border: 2px solid var(--surface); box-shadow: 0 0 0 2px var(--outline-variant); }
+        .timeline-dot .material-symbols-outlined { font-size: 15px; }
+        .timeline-dot--confirmed  { background: var(--badge-confirmed-bg);  color: var(--badge-confirmed-txt);  box-shadow: 0 0 0 2px var(--badge-confirmed-txt); }
+        .timeline-dot--pending    { background: var(--badge-pending-bg);    color: var(--badge-pending-txt);    box-shadow: 0 0 0 2px var(--badge-pending-txt); }
+        .timeline-dot--cancelled  { background: var(--badge-cancelled-bg);  color: var(--badge-cancelled-txt);  box-shadow: 0 0 0 2px var(--badge-cancelled-txt); }
+        .timeline-dot--boarded    { background: var(--badge-boarded-bg);    color: var(--badge-boarded-txt);    box-shadow: 0 0 0 2px var(--badge-boarded-txt); }
+        .timeline-dot--completed  { background: var(--badge-completed-bg);  color: var(--badge-completed-txt);  box-shadow: 0 0 0 2px var(--badge-completed-txt); }
+        .timeline-status { display: inline-flex; align-items: center; gap: 5px; font: var(--font-label-md); color: var(--on-surface); margin-bottom: 2px; }
+        .timeline-note { font: var(--font-label-sm); color: var(--on-surface-variant); margin-bottom: 2px; }
+        .timeline-meta { display: flex; align-items: center; gap: var(--space-sm); font: 500 10px/1 var(--font-family); color: var(--text-muted); }
+        .timeline-actor { display: flex; align-items: center; gap: 3px; color: var(--secondary); }
+        .timeline-actor .material-symbols-outlined { font-size: 12px; }
+        .timeline-time { font-family: 'Courier New', monospace; }
+        @media print { .status-timeline-section { display: none !important; } }
+    </style>
 </head>
 <body>
 <div class="app-wrapper">
@@ -23,7 +47,7 @@
             <div class="sky-breadcrumb"><a th:href="@{/dashboard}">Dashboard</a><span class="material-symbols-outlined">chevron_right</span><a th:href="@{/bookings}">Bookings</a><span class="material-symbols-outlined">chevron_right</span><span th:text="${booking.bookingReference}">SKY-2026001</span></div>
             <div class="page-header">
                 <div><h1 class="page-header__title" th:text="${booking.bookingReference}">SKY-2026001</h1><p class="page-header__sub" th:if="${booking.createdAt != null}" th:text="|Booked on ${#temporals.format(booking.createdAt, 'dd MMM yyyy HH:mm')}|">Booked on</p></div>
-                <div class="page-header__actions"><button type="button" class="btn-sky-ghost" onclick="window.print()"><span class="material-symbols-outlined">print</span>Print</button><button th:if="${booking.cancellable}" type="button" class="btn-sky-ghost" th:data-id="${booking.id}" th:data-reference="${booking.bookingReference}" onclick="confirmCancelDetail(this.dataset.id, this.dataset.reference)"><span class="material-symbols-outlined">cancel</span>Cancel</button><button sec:authorize="hasRole('ADMIN')" type="button" class="btn-sky-danger" th:data-id="${booking.id}" th:data-reference="${booking.bookingReference}" onclick="confirmDeleteDetail(this.dataset.id, this.dataset.reference)"><span class="material-symbols-outlined">delete</span>Delete</button></div>
+                <div class="page-header__actions"><a th:if="${booking.status != T(com.skylink.app.enums.BookingStatus).CANCELLED}" class="btn-sky-primary" th:href="@{/payment/{reference}(reference=${booking.bookingReference})}"><span class="material-symbols-outlined">payments</span>Demo Payment</a><button type="button" class="btn-sky-ghost" onclick="window.print()"><span class="material-symbols-outlined">print</span>Print</button><button th:if="${booking.cancellable}" type="button" class="btn-sky-ghost" th:data-id="${booking.id}" th:data-reference="${booking.bookingReference}" onclick="confirmCancelDetail(this.dataset.id, this.dataset.reference)"><span class="material-symbols-outlined">cancel</span>Cancel</button><button sec:authorize="hasRole('ADMIN')" type="button" class="btn-sky-danger" th:data-id="${booking.id}" th:data-reference="${booking.bookingReference}" onclick="confirmDeleteDetail(this.dataset.id, this.dataset.reference)"><span class="material-symbols-outlined">delete</span>Delete</button></div>
             </div>
 
             <div class="booking-detail-grid">
@@ -38,6 +62,69 @@
                     <section class="sky-card booking-info-card"><h2 class="booking-info-title"><span class="material-symbols-outlined">person</span>Customer</h2><div class="booking-info-row"><span class="booking-info-label">Name</span><a th:if="${booking.customerId != null}" class="booking-info-value booking-info-link" th:href="@{/customers/{id}(id=${booking.customerId})}" th:text="${booking.customerName ?: '-'}">Customer</a><span th:unless="${booking.customerId != null}" class="booking-info-value" th:text="${booking.customerName ?: '-'}">Customer</span></div><div class="booking-info-row"><span class="booking-info-label">Email</span><span class="booking-info-value" th:text="${booking.customerEmail ?: '-'}">email</span></div><div class="booking-info-row"><span class="booking-info-label">Phone</span><span class="booking-info-value" th:text="${booking.customerPhone ?: '-'}">phone</span></div></section>
                     <section class="sky-card booking-info-card"><h2 class="booking-info-title"><span class="material-symbols-outlined">confirmation_number</span>Booking Info</h2><div class="booking-info-row"><span class="booking-info-label">Reference</span><strong class="booking-info-value booking-ref-mono" th:text="${booking.bookingReference}">SKY-2026001</strong></div><div class="booking-info-row"><span class="booking-info-label">Class</span><span class="class-chip" th:text="${booking.seatClass != null ? booking.seatClass.name() : '-'}">ECONOMY</span></div><div class="booking-info-row"><span class="booking-info-label">Booked on</span><span class="booking-info-value" th:if="${booking.createdAt != null}" th:text="${#temporals.format(booking.createdAt, 'dd MMM yyyy')}">01 Aug 2026</span></div><div sec:authorize="hasRole('ADMIN')" class="booking-info-row"><span class="booking-info-label">Created by</span><span class="booking-info-value" th:text="${booking.createdByName ?: '-'}">Admin</span></div><div th:if="${booking.cancelledAt != null}" class="booking-info-row"><span class="booking-info-label">Cancelled</span><span class="booking-info-value booking-cancelled" th:text="${#temporals.format(booking.cancelledAt, 'dd MMM yyyy')}">01 Aug 2026</span></div></section>
                     <section sec:authorize="hasRole('ADMIN')" class="sky-card booking-info-card"><h2 class="booking-info-title"><span class="material-symbols-outlined">update</span>Update Status</h2><form th:action="@{/bookings/status/{id}(id=${booking.id})}" method="post"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"><label class="sky-label" for="newStatus">New Status</label><select id="newStatus" name="newStatus" class="sky-select"><option value="PENDING" th:selected="${booking.status == T(com.skylink.app.enums.BookingStatus).PENDING}">PENDING</option><option value="CONFIRMED" th:selected="${booking.status == T(com.skylink.app.enums.BookingStatus).CONFIRMED}">CONFIRMED</option><option value="BOARDED" th:selected="${booking.status == T(com.skylink.app.enums.BookingStatus).BOARDED}">BOARDED</option><option value="COMPLETED" th:selected="${booking.status == T(com.skylink.app.enums.BookingStatus).COMPLETED}">COMPLETED</option><option value="CANCELLED" th:selected="${booking.status == T(com.skylink.app.enums.BookingStatus).CANCELLED}">CANCELLED</option></select><button type="submit" class="btn-sky-primary booking-status-submit">Update Status</button></form></section>
+                </div>
+            </div>
+            <div class="boarding-pass">
+                <div class="bp-main">
+                    <div class="bp-eyebrow">Boarding Pass</div>
+                    <div class="bp-airline"><span class="material-symbols-outlined">flight_takeoff</span>SkyLink Airways</div>
+                    <div class="bp-route">
+                        <div><div class="bp-iata" th:text="${booking.originIata ?: '-'}">DAC</div><div class="bp-city" th:text="${booking.originCity ?: '-'}">Dhaka</div></div>
+                        <div class="bp-route-mid"><div class="bp-route-line"></div><span class="material-symbols-outlined bp-plane-icon">flight</span><div class="bp-route-line"></div></div>
+                        <div class="bp-route-destination"><div class="bp-iata" th:text="${booking.destinationIata ?: '-'}">CGP</div><div class="bp-city" th:text="${booking.destinationCity ?: '-'}">Chittagong</div></div>
+                    </div>
+                    <div class="bp-details">
+                        <div><span class="bp-detail-label">Passenger</span><span class="bp-detail-value" th:text="${booking.customerName ?: '-'}">John Doe</span></div>
+                        <div><span class="bp-detail-label">Flight</span><span class="bp-detail-value" th:text="${booking.flightNumber ?: '-'}">BS-141</span></div>
+                        <div><span class="bp-detail-label">Date</span><span class="bp-detail-value" th:if="${booking.departureTime != null}" th:text="${#temporals.format(booking.departureTime,'dd MMM yyyy')}">12 Aug 2026</span></div>
+                        <div><span class="bp-detail-label">Departure</span><span class="bp-detail-value" th:if="${booking.departureTime != null}" th:text="${#temporals.format(booking.departureTime,'HH:mm')}">08:30</span></div>
+                        <div><span class="bp-detail-label">Class</span><span class="bp-detail-value" th:text="${booking.seatClass != null ? booking.seatClass.name() : '-'}">ECONOMY</span></div>
+                        <div><span class="bp-detail-label">Passengers</span><span class="bp-detail-value" th:text="${booking.passengerCount}">1</span></div>
+                        <div><span class="bp-detail-label">Status</span><span class="bp-detail-value" th:text="${booking.status != null ? booking.status.name() : '-'}">CONFIRMED</span></div>
+                        <div><span class="bp-detail-label">Ref</span><span class="bp-detail-value" th:text="${booking.bookingReference}">SKY-001</span></div>
+                    </div>
+                </div>
+                <div class="bp-separator"></div>
+                <div class="bp-qr-stub">
+                    <img class="bp-qr-img" th:src="@{/bookings/{id}/qr(id=${booking.id})}" alt="Boarding Pass QR" loading="lazy">
+                    <div class="bp-qr-ref" th:text="${booking.bookingReference}">SKY-2026001</div>
+                    <div class="bp-qr-hint">Scan at gate</div>
+                </div>
+            </div>
+            <div class="status-timeline-section"
+                 th:if="${statusHistory != null and !#lists.isEmpty(statusHistory)}">
+                <div class="status-timeline-title">
+                    <span class="material-symbols-outlined">timeline</span>
+                    Booking History
+                </div>
+                <div class="timeline">
+                    <div th:each="entry : ${statusHistory}" class="timeline-item">
+                        <div th:class="|timeline-dot timeline-dot--${entry.status.name().toLowerCase()}|">
+                            <span class="material-symbols-outlined" th:text="${
+                                entry.status.name() == 'CONFIRMED'  ? 'check_circle' :
+                                entry.status.name() == 'PENDING'    ? 'pending' :
+                                entry.status.name() == 'BOARDED'    ? 'airline_seat_recline_normal' :
+                                entry.status.name() == 'COMPLETED'  ? 'task_alt' :
+                                entry.status.name() == 'CANCELLED'  ? 'cancel' : 'info'}">info</span>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="timeline-status">
+                                <span th:class="|badge-status badge-${entry.status.name().toLowerCase()}|"
+                                      th:text="${entry.status.name()}">CONFIRMED</span>
+                            </div>
+                            <div class="timeline-note" th:if="${entry.note != null}"
+                                 th:text="${entry.note}">Note here</div>
+                            <div class="timeline-meta">
+                                <span class="timeline-actor">
+                                    <span class="material-symbols-outlined">person</span>
+                                    <span th:text="${entry.changedByName ?: entry.changedBy ?: 'System'}">Admin</span>
+                                </span>
+                                <span>·</span>
+                                <span class="timeline-time" th:if="${entry.changedAt != null}"
+                                      th:text="${#temporals.format(entry.changedAt, 'dd MMM yyyy HH:mm')}">12 Aug 2026 08:30</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <form id="cancelForm" method="post" hidden><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"></form><form id="deleteForm" method="post" hidden><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"></form>

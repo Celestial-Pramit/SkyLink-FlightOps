@@ -1,5 +1,13 @@
 package com.skylink.app.controller;
 
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.EncodeHintType;
+import com.google.zxing.WriterException;
+import com.google.zxing.client.j2se.MatrixToImageConfig;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 import com.skylink.app.dto.BookingCreateDto;
 import com.skylink.app.dto.BookingDto;
 import com.skylink.app.entity.AppUser;
@@ -11,32 +19,34 @@ import com.skylink.app.exception.BusinessRuleException;
 import com.skylink.app.exception.ResourceNotFoundException;
 import com.skylink.app.repository.AppUserRepository;
 import com.skylink.app.repository.AirportRepository;
+import com.skylink.app.repository.BookingStatusHistoryRepository;
 import com.skylink.app.repository.CustomerRepository;
 import com.skylink.app.repository.FlightRepository;
 import com.skylink.app.service.IBookingService;
 import com.skylink.app.service.ICustomerService;
 import com.skylink.app.service.IFlightService;
 import com.skylink.app.util.BookingMapper;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.IOException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/bookings")
@@ -52,6 +62,7 @@ public class BookingController {
     private final AirportRepository airportRepository;
     private final FlightRepository flightRepository;
     private final CustomerRepository customerRepository;
+    private final BookingStatusHistoryRepository historyRepository;
 
     @GetMapping
     public String list(
@@ -67,17 +78,21 @@ public class BookingController {
             : bookingService.findByCreatedBy(currentUser);
 
         List<Booking> filtered = allBookings.stream()
-            .filter(booking -> status == null || booking.getStatus() == status)
-            .filter(booking -> matchesSearch(booking, search))
+            .filter(b -> status == null || b.getStatus() == status)
+            .filter(b -> matchesSearch(b, search))
             .toList();
 
-        model.addAttribute("bookings", filtered.stream().map(bookingMapper::toDto).toList());
+        model.addAttribute("bookings",
+            filtered.stream().map(bookingMapper::toDto).toList());
         model.addAttribute("selectedStatus", status);
         model.addAttribute("search", search);
-        model.addAttribute("totalCount", allBookings.size());
-        model.addAttribute("confirmedCount", countByStatus(allBookings, BookingStatus.CONFIRMED));
-        model.addAttribute("pendingCount", countByStatus(allBookings, BookingStatus.PENDING));
-        model.addAttribute("cancelledCount", countByStatus(allBookings, BookingStatus.CANCELLED));
+        model.addAttribute("totalCount",     allBookings.size());
+        model.addAttribute("confirmedCount",
+            countByStatus(allBookings, BookingStatus.CONFIRMED));
+        model.addAttribute("pendingCount",
+            countByStatus(allBookings, BookingStatus.PENDING));
+        model.addAttribute("cancelledCount",
+            countByStatus(allBookings, BookingStatus.CANCELLED));
         model.addAttribute("isAdmin", admin);
         model.addAttribute("statuses", BookingStatus.values());
         model.addAttribute("pageTitle", "Bookings");
@@ -96,8 +111,10 @@ public class BookingController {
             Model model) {
 
         List<Flight> flights = null;
-        if (originAirportId != null || destinationAirportId != null || date != null) {
-            flights = flightService.search(originAirportId, destinationAirportId, date, null);
+        if (originAirportId != null
+                || destinationAirportId != null || date != null) {
+            flights = flightService.search(
+                originAirportId, destinationAirportId, date, null);
         }
 
         model.addAttribute("airports", airportRepository.findAll());
@@ -131,23 +148,26 @@ public class BookingController {
             @AuthenticationPrincipal UserDetails userDetails,
             Model model,
             RedirectAttributes redirectAttributes) {
+
         if (bindingResult.hasErrors()) {
             populateCreateModel(model, dto);
             return "bookings/create";
         }
-
         try {
-            Booking booking = bookingService.createBooking(dto, getCurrentUser(userDetails));
+            Booking booking = bookingService.createBooking(
+                dto, getCurrentUser(userDetails));
             addFlash(redirectAttributes, "success",
-                "Booking " + booking.getBookingReference() + " confirmed successfully.");
-            return "redirect:/bookings/" + booking.getId();
+                "Booking " + booking.getBookingReference()
+                + " confirmed successfully.");
+            return "redirect:/payment/" + booking.getBookingReference();
         } catch (BusinessRuleException e) {
             addFlash(redirectAttributes, "warning", e.getMessage());
             return "redirect:/bookings/create?flightId=" + dto.getFlightId()
                 + "&customerId=" + dto.getCustomerId();
         } catch (Exception e) {
             log.error("Booking creation failed", e);
-            addFlash(redirectAttributes, "error", "Booking failed. Please try again.");
+            addFlash(redirectAttributes, "error",
+                "Booking failed. Please try again.");
             return "redirect:/bookings/create";
         }
     }
@@ -157,12 +177,15 @@ public class BookingController {
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetails userDetails,
             Model model) {
+
         Booking booking = bookingService.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Booking not found: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Booking not found: " + id));
         boolean admin = isAdmin(userDetails);
 
         if (!admin && (booking.getCreatedBy() == null
-                || !booking.getCreatedBy().getId().equals(getCurrentUser(userDetails).getId()))) {
+                || !booking.getCreatedBy().getId()
+                    .equals(getCurrentUser(userDetails).getId()))) {
             return "redirect:/bookings?error=access";
         }
 
@@ -170,9 +193,85 @@ public class BookingController {
         model.addAttribute("booking", dto);
         model.addAttribute("isAdmin", admin);
         model.addAttribute("statuses", BookingStatus.values());
+        model.addAttribute("statusHistory",
+            historyRepository.findByBookingOrderByChangedAtAsc(booking));
         model.addAttribute("pageTitle", dto.getBookingReference());
         model.addAttribute("activePage", "bookings");
         return "bookings/detail";
+    }
+
+    @GetMapping(value = "/{id}/qr", produces = MediaType.IMAGE_PNG_VALUE)
+    @ResponseBody
+    public byte[] qrCode(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails,
+            HttpServletResponse response) throws IOException {
+
+        Booking booking = bookingService.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Booking not found: " + id));
+
+        boolean admin = isAdmin(userDetails);
+        if (!admin && (booking.getCreatedBy() == null
+                || !booking.getCreatedBy().getId()
+                    .equals(getCurrentUser(userDetails).getId()))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return new byte[0];
+        }
+
+        String content = buildQrContent(booking);
+        response.setHeader("Cache-Control", "private, max-age=3600");
+
+        try {
+            Map<EncodeHintType, Object> hints =
+                new EnumMap<>(EncodeHintType.class);
+            hints.put(EncodeHintType.ERROR_CORRECTION,
+                ErrorCorrectionLevel.M);
+            hints.put(EncodeHintType.MARGIN, 2);
+            hints.put(EncodeHintType.CHARACTER_SET, "UTF-8");
+
+            QRCodeWriter writer = new QRCodeWriter();
+            BitMatrix matrix = writer.encode(
+                content, BarcodeFormat.QR_CODE, 300, 300, hints);
+
+            MatrixToImageConfig config =
+                new MatrixToImageConfig(0xFF1d0947, 0xFFfdf8fe);
+            java.io.ByteArrayOutputStream out =
+                new java.io.ByteArrayOutputStream();
+            MatrixToImageWriter.writeToStream(matrix, "PNG", out, config);
+            return out.toByteArray();
+
+        } catch (WriterException e) {
+            log.error("QR generation failed for booking {}", id, e);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            return new byte[0];
+        }
+    }
+
+    private String buildQrContent(Booking booking) {
+        DateTimeFormatter fmt =
+            DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm");
+        return String.join("\n",
+            "SkyLink Boarding Pass",
+            "Ref: " + booking.getBookingReference(),
+            "Passenger: " + (booking.getCustomer() != null
+                ? booking.getCustomer().getFullName() : "-"),
+            "Flight: " + (booking.getFlight() != null
+                ? booking.getFlight().getFlightNumber() : "-"),
+            "Route: " + (booking.getFlight() != null
+                ? booking.getFlight().getOriginAirport().getIataCode()
+                  + " -> "
+                  + booking.getFlight().getDestinationAirport().getIataCode()
+                : "-"),
+            "Departure: " + (booking.getFlight() != null
+                && booking.getFlight().getDepartureTime() != null
+                ? booking.getFlight().getDepartureTime().format(fmt) : "-"),
+            "Class: " + (booking.getSeatClass() != null
+                ? booking.getSeatClass().name() : "-"),
+            "Pax: " + booking.getPassengerCount(),
+            "Status: " + (booking.getStatus() != null
+                ? booking.getStatus().name() : "-")
+        );
     }
 
     @PostMapping("/cancel/{id}")
@@ -182,12 +281,14 @@ public class BookingController {
             RedirectAttributes redirectAttributes) {
         try {
             bookingService.cancelBooking(id, getCurrentUser(userDetails));
-            addFlash(redirectAttributes, "success", "Booking cancelled successfully. Seats restored.");
+            addFlash(redirectAttributes, "success",
+                "Booking cancelled successfully. Seats restored.");
         } catch (BusinessRuleException e) {
             addFlash(redirectAttributes, "warning", e.getMessage());
         } catch (Exception e) {
             log.error("Cancel failed for booking id {}", id, e);
-            addFlash(redirectAttributes, "error", "Cancel failed. Please try again.");
+            addFlash(redirectAttributes, "error",
+                "Cancel failed. Please try again.");
         }
         return "redirect:/bookings/" + id;
     }
@@ -200,7 +301,8 @@ public class BookingController {
             RedirectAttributes redirectAttributes) {
         try {
             bookingService.updateStatus(id, newStatus);
-            addFlash(redirectAttributes, "success", "Status updated to " + newStatus + ".");
+            addFlash(redirectAttributes, "success",
+                "Status updated to " + newStatus + ".");
         } catch (BusinessRuleException e) {
             addFlash(redirectAttributes, "warning", e.getMessage());
         } catch (Exception e) {
@@ -212,49 +314,56 @@ public class BookingController {
 
     @PostMapping("/delete/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String delete(
+            @PathVariable Long id,
+            RedirectAttributes redirectAttributes) {
         try {
             Booking booking = bookingService.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Booking not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                    "Booking not found: " + id));
             String reference = booking.getBookingReference();
             bookingService.deleteBooking(id);
-            addFlash(redirectAttributes, "success", "Booking " + reference + " deleted.");
+            addFlash(redirectAttributes, "success",
+                "Booking " + reference + " deleted.");
         } catch (BusinessRuleException e) {
             addFlash(redirectAttributes, "warning", e.getMessage());
         } catch (Exception e) {
             log.error("Delete failed for booking id {}", id, e);
-            addFlash(redirectAttributes, "error", "Delete failed. Please try again.");
+            addFlash(redirectAttributes, "error",
+                "Delete failed. Please try again.");
         }
         return "redirect:/bookings";
     }
 
     private AppUser getCurrentUser(UserDetails userDetails) {
         return userRepository.findByEmail(userDetails.getUsername())
-            .orElseThrow(() -> new ResourceNotFoundException("Current user not found"));
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Current user not found"));
     }
 
     private boolean isAdmin(UserDetails userDetails) {
         return userDetails.getAuthorities().stream()
-            .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN")
-                || authority.getAuthority().equals("ROLE_SUPER_ADMIN"));
+            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")
+                       || a.getAuthority().equals("ROLE_SUPER_ADMIN"));
     }
 
-    private boolean matchesSearch(Booking booking, String search) {
-        if (search == null || search.isBlank()) {
-            return true;
-        }
-        String query = search.trim().toLowerCase();
-        return contains(booking.getBookingReference(), query)
-            || contains(booking.getCustomer() == null ? null : booking.getCustomer().getFullName(), query)
-            || contains(booking.getFlight() == null ? null : booking.getFlight().getFlightNumber(), query);
+    private boolean matchesSearch(Booking b, String search) {
+        if (search == null || search.isBlank()) return true;
+        String q = search.trim().toLowerCase();
+        return contains(b.getBookingReference(), q)
+            || contains(b.getCustomer() == null
+                ? null : b.getCustomer().getFullName(), q)
+            || contains(b.getFlight() == null
+                ? null : b.getFlight().getFlightNumber(), q);
     }
 
-    private boolean contains(String value, String query) {
-        return value != null && value.toLowerCase().contains(query);
+    private boolean contains(String value, String q) {
+        return value != null && value.toLowerCase().contains(q);
     }
 
     private long countByStatus(List<Booking> bookings, BookingStatus status) {
-        return bookings.stream().filter(booking -> booking.getStatus() == status).count();
+        return bookings.stream()
+            .filter(b -> b.getStatus() == status).count();
     }
 
     private void populateCreateModel(Model model, BookingCreateDto dto) {
@@ -263,18 +372,19 @@ public class BookingController {
         model.addAttribute("seatClasses", SeatClass.values());
         if (dto.getFlightId() != null) {
             flightRepository.findById(dto.getFlightId())
-                .ifPresent(flight -> model.addAttribute("selectedFlight", flight));
+                .ifPresent(f -> model.addAttribute("selectedFlight", f));
         }
         if (dto.getCustomerId() != null) {
             customerRepository.findById(dto.getCustomerId())
-                .ifPresent(customer -> model.addAttribute("selectedCustomer", customer));
+                .ifPresent(c -> model.addAttribute("selectedCustomer", c));
         }
         model.addAttribute("pageTitle", "Create Booking");
         model.addAttribute("activePage", "findbook");
     }
 
-    private void addFlash(RedirectAttributes attributes, String type, String message) {
-        attributes.addFlashAttribute("flashType", type);
-        attributes.addFlashAttribute("flashMessage", message);
+    private void addFlash(RedirectAttributes attrs,
+                           String type, String message) {
+        attrs.addFlashAttribute("flashType", type);
+        attrs.addFlashAttribute("flashMessage", message);
     }
 }

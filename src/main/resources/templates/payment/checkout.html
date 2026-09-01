@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="|Pay BDT ${#numbers.formatDecimal(booking.totalAmount,1,'COMMA',0,'POINT')} - SkyLink Payment|">Secure Payment</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/payment.css}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+</head>
+<body>
+<div class="payment-page">
+    <div class="payment-url-bar"><div class="payment-url-pill"><span class="payment-url-lock material-symbols-outlined">lock</span><span class="payment-url-text">pay.skylink-ops.com/<span th:text="${booking.bookingReference}">SKY-2026001</span>/checkout</span></div></div>
+    <div class="payment-demo-banner"><span class="material-symbols-outlined">info</span>Demo Mode - No real payment processed. Click Pay to simulate.</div>
+    <div class="payment-body">
+        <div class="payment-card">
+            <div class="payment-left">
+                <div class="payment-left-header"><div class="payment-merchant"><div class="payment-merchant-logo"><span class="material-symbols-outlined">flight_takeoff</span></div><div><div class="payment-merchant-name">SkyLink Airways</div><div class="payment-merchant-txn" th:text="|Trx ID: ${booking.bookingReference}|">Trx ID: SKY-001</div></div></div><div class="payment-time" id="paymentClock">--:--</div></div>
+                <div class="payment-amount-box"><div><div class="payment-amount-label">You are paying</div><div class="payment-amount-value" th:text="|BDT ${#numbers.formatDecimal(booking.totalAmount,1,'COMMA',0,'POINT')}|">BDT 0</div></div><button class="payment-gpay-mini" type="button" onclick="handleGPay()">Pay with <span class="payment-gpay-g">G</span> Pay</button></div>
+                <div class="payment-breakdown">
+                    <div class="payment-breakdown-row"><span class="payment-breakdown-label">Flight</span><span class="payment-breakdown-value" th:text="${booking.flightNumber ?: '-'}">BS-141</span></div>
+                    <div class="payment-breakdown-row"><span class="payment-breakdown-label">Route</span><span class="payment-breakdown-value" th:text="${booking.originIata + ' -> ' + booking.destinationIata}">DAC -&gt; CGP</span></div>
+                    <div class="payment-breakdown-row"><span class="payment-breakdown-label">Class</span><span class="payment-breakdown-value" th:text="${booking.seatClass != null ? booking.seatClass.name() : '-'}">ECONOMY</span></div>
+                    <div class="payment-breakdown-row"><span class="payment-breakdown-label">Passengers</span><span class="payment-breakdown-value" th:text="${booking.passengerCount + ' pax'}">1 pax</span></div>
+                    <div class="payment-breakdown-row"><span class="payment-breakdown-label">Subtotal</span><span class="payment-breakdown-value" th:text="|BDT ${#numbers.formatDecimal(booking.totalAmount,1,'COMMA',0,'POINT')}|">BDT 0</span></div>
+                    <div class="payment-breakdown-row"><span class="payment-breakdown-label">Convenience Charge</span><span class="payment-breakdown-value">BDT 0.00</span></div>
+                    <div class="payment-breakdown-row"><strong class="payment-breakdown-label">Total amount</strong><strong class="payment-breakdown-value payment-breakdown-value--total" th:text="|BDT ${#numbers.formatDecimal(booking.totalAmount,1,'COMMA',0,'POINT')}|">BDT 0</strong></div>
+                </div>
+                <div class="payment-offers-title">Special Offers and Savings</div><div class="payment-offers-sub">Automatically Applied with Eligible Payments</div><div class="payment-no-offers"><div class="payment-no-offers-icon">Offers</div><div class="payment-no-offers-text">No offers available for this transaction</div></div>
+                <div class="payment-left-footer"><div class="payment-footer-links"><a class="payment-footer-link" href="#">Support</a><a class="payment-footer-link" href="#">FAQ</a></div><div class="payment-footer-lang">English</div></div>
+            </div>
+            <div class="payment-divider"></div>
+            <div class="payment-right">
+                <div class="payment-right-header"><div class="payment-welcome">Welcome!</div><div class="payment-login-link"><span class="material-symbols-outlined">person</span>Login</div></div>
+                <button class="payment-gpay-btn" type="button" onclick="handleGPay()">Pay with <span class="payment-gpay-g">G</span> Pay</button><div class="payment-or">Or</div>
+                <div class="payment-method-tabs"><button class="payment-method-tab" type="button" onclick="switchTab('card',this)"><span class="tab-icon material-symbols-outlined">credit_card</span>Card</button><button class="payment-method-tab active" type="button" onclick="switchTab('mobile',this)"><span class="tab-icon material-symbols-outlined">smartphone</span>Mobile Banking</button><button class="payment-method-tab" type="button" onclick="switchTab('netbank',this)"><span class="tab-icon material-symbols-outlined">account_balance</span>Net Banking</button><button class="payment-method-tab" type="button" onclick="switchTab('more',this)"><span class="tab-icon material-symbols-outlined">more_horiz</span>More</button></div>
+                <div class="payment-card-form" id="cardForm"><div class="payment-card-input-group"><label for="cardNum">Card Number</label><input id="cardNum" class="payment-card-input" type="text" placeholder="0000 0000 0000 0000" maxlength="19" oninput="formatCard(this)"></div><div class="payment-card-input-group"><label for="cardHolder">Card Holder</label><input id="cardHolder" class="payment-card-input" type="text" placeholder="Name on card"></div><div class="payment-card-row"><div class="payment-card-input-group"><label for="cardExpiry">Expiry</label><input id="cardExpiry" class="payment-card-input" type="text" placeholder="MM/YY" maxlength="5" oninput="formatExpiry(this)"></div><div class="payment-card-input-group"><label for="cardCvv">CVV</label><input id="cardCvv" class="payment-card-input" type="password" placeholder="***" maxlength="4"></div></div></div>
+                <div class="payment-bank-grid" id="mobileBankGrid">
+                    <button class="payment-bank-btn" type="button" onclick="selectBank(this,'bKash')"><div class="payment-bank-logo">bK</div>bKash</button><button class="payment-bank-btn" type="button" onclick="selectBank(this,'Rocket')"><div class="payment-bank-logo">RK</div>Rocket</button><button class="payment-bank-btn" type="button" onclick="selectBank(this,'Nagad')"><div class="payment-bank-logo">NG</div>Nagad</button><button class="payment-bank-btn" type="button" onclick="selectBank(this,'Upay')"><div class="payment-bank-logo">UP</div>Upay</button><button class="payment-bank-btn" type="button" onclick="selectBank(this,'CellFin')"><div class="payment-bank-logo">CF</div>CellFin</button><button class="payment-bank-btn" type="button" onclick="selectBank(this,'MyCash')"><div class="payment-bank-logo">MC</div>MyCash</button><button class="payment-bank-btn" type="button" onclick="selectBank(this,'Cashbaba')"><div class="payment-bank-logo">CB</div>Cashbaba</button><button class="payment-bank-btn" type="button" onclick="selectBank(this,'Pocket')"><div class="payment-bank-logo">PK</div>Pocket</button><button class="payment-bank-btn" type="button" onclick="selectBank(this,'SurjoPay')"><div class="payment-bank-logo">SP</div>SurjoPay</button><button class="payment-bank-btn" type="button" onclick="selectBank(this,'PathaoPay')"><div class="payment-bank-logo">PP</div>Pathao Pay</button><button class="payment-bank-btn" type="button" onclick="selectBank(this,'Rainbow')"><div class="payment-bank-logo">RB</div>Rainbow</button><button class="payment-bank-btn" type="button" onclick="selectBank(this,'Tap')"><div class="payment-bank-logo">TP</div>Tap</button>
+                </div>
+                <div id="netBankGrid" class="payment-placeholder"><span class="material-symbols-outlined">account_balance</span>Net Banking options available in demo mode</div><div id="moreGrid" class="payment-placeholder"><span class="material-symbols-outlined">more_horiz</span>More payment options coming soon</div>
+                <form th:action="@{/payment/{ref}/process(ref=${booking.bookingReference})}" method="post" id="paymentForm"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"><button type="submit" class="payment-pay-btn ready" id="payBtn"><span class="pay-spinner"></span><span class="pay-btn-text" th:text="|Pay BDT ${#numbers.formatDecimal(booking.totalAmount,1,'COMMA',0,'POINT')}|">Pay BDT 0</span></button></form>
+                <p class="payment-terms">By clicking the Pay button you agree to our <a href="#">Terms of Service</a> for this demo.</p><div class="payment-right-footer"><div class="payment-powered">Powered by <strong>SSLCommerz</strong></div><div class="payment-secured"><span class="payment-secured-badge">PCI DSS</span><span class="payment-secured-badge">3DS</span></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+let currentTab='mobile',selectedBank=null;
+function switchTab(tab,button){document.querySelectorAll('.payment-method-tab').forEach(function(item){item.classList.remove('active')});button.classList.add('active');currentTab=tab;selectedBank=null;document.getElementById('cardForm').classList.toggle('active',tab==='card');document.getElementById('mobileBankGrid').style.display=tab==='mobile'?'grid':'none';document.getElementById('netBankGrid').classList.toggle('active',tab==='netbank');document.getElementById('moreGrid').classList.toggle('active',tab==='more');document.querySelectorAll('.payment-bank-btn').forEach(function(item){item.classList.remove('selected')});updatePayBtn()}
+function selectBank(button,name){document.querySelectorAll('.payment-bank-btn').forEach(function(item){item.classList.remove('selected')});button.classList.add('selected');selectedBank=name;updatePayBtn()}
+function formatCard(input){let value=input.value.replace(/\D/g,'').substring(0,16);let groups=value.match(/.{1,4}/g);input.value=groups?groups.join(' '):value;updatePayBtn()}
+function formatExpiry(input){let value=input.value.replace(/\D/g,'').substring(0,4);if(value.length>=3)value=value.substring(0,2)+'/'+value.substring(2);input.value=value;updatePayBtn()}
+function updatePayBtn(){let button=document.getElementById('payBtn');let ready=currentTab==='card'?document.getElementById('cardNum').value.replace(/\s/g,'').length===16:currentTab==='mobile'?selectedBank!==null:true;button.classList.toggle('ready',ready)}
+function handleGPay(){Swal.fire({title:'Google Pay',text:'Demo payment selected.',icon:'info',timer:1000,showConfirmButton:false}).then(function(){document.getElementById('paymentForm').submit()})}
+document.getElementById('paymentForm').addEventListener('submit',function(){document.getElementById('payBtn').classList.add('loading')});
+(function(){function tick(){let now=new Date(),el=document.getElementById('paymentClock');if(el)el.textContent=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')}tick();setInterval(tick,1000)})();
+</script>
+</body>
+</html>
