@@ -1,4 +1,4 @@
-﻿-- SkyLink development seed data. Passwords are encoded by DataSeeder on startup.
+-- SkyLink development seed data. Passwords are encoded by DataSeeder on startup.
 CREATE TABLE IF NOT EXISTS persistent_logins (
     username VARCHAR(64) NOT NULL,
     series VARCHAR(64) PRIMARY KEY,
