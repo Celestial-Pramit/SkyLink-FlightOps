@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Two-Factor Verification - SkyLink Ops</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
+    <link rel="stylesheet" th:href="@{/css/otp.css}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+<body>
+<div class="otp-page">
+    <div class="otp-card">
+        <div class="otp-shield">
+            <span class="material-symbols-outlined">shield_lock</span>
+        </div>
+        <h1 class="otp-title">Two-Factor Verification</h1>
+        <p class="otp-subtitle">Enter the 6-digit security code sent to</p>
+        <div class="otp-email-badge" th:text="${userEmail}">a***@skylink.com</div>
+
+        <div th:if="${otpError}" class="otp-error">
+            <span class="material-symbols-outlined" style="font-size:16px">error</span>
+            <span th:text="${otpError}">Incorrect code</span>
+        </div>
+
+        <form th:action="@{/verify-otp/confirm}" method="post" id="otpForm">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <div class="otp-input-row">
+                <input class="otp-digit" type="text" name="digit1" id="d1"
+                       maxlength="1" inputmode="numeric" pattern="[0-9]"
+                       autocomplete="one-time-code" autofocus>
+                <input class="otp-digit" type="text" name="digit2" id="d2"
+                       maxlength="1" inputmode="numeric" pattern="[0-9]">
+                <input class="otp-digit" type="text" name="digit3" id="d3"
+                       maxlength="1" inputmode="numeric" pattern="[0-9]">
+                <div class="otp-dash"></div>
+                <input class="otp-digit" type="text" name="digit4" id="d4"
+                       maxlength="1" inputmode="numeric" pattern="[0-9]">
+                <input class="otp-digit" type="text" name="digit5" id="d5"
+                       maxlength="1" inputmode="numeric" pattern="[0-9]">
+                <input class="otp-digit" type="text" name="digit6" id="d6"
+                       maxlength="1" inputmode="numeric" pattern="[0-9]">
+            </div>
+            <div class="otp-countdown">
+                <span class="material-symbols-outlined" style="font-size:16px">timer</span>
+                Code expires in
+                <span class="otp-countdown-time" id="countdown">5:00</span>
+            </div>
+            <button type="submit" class="otp-submit-btn"
+                    id="otpSubmitBtn" disabled>
+                <span class="material-symbols-outlined">verified_user</span>
+                Verify &amp; Sign In
+            </button>
+        </form>
+
+        <p class="otp-back">Wrong account?
+            <form th:action="@{/logout}" method="post" style="display:inline">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button type="submit" style="background:none;border:none;padding:0;color:var(--secondary);font-weight:600;cursor:pointer;font:var(--font-label-sm)">Sign out</button>
+            </form>
+        </p>
+        <div class="otp-demo-hint">
+            <span class="material-symbols-outlined" style="font-size:14px;flex-shrink:0">info</span>
+            <span>Demo mode — your OTP will appear as a notification.</span>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:inline="javascript">
+/*<![CDATA[*/
+const DEMO_OTP  = /*[[${demoOtp}]]*/ '000000';
+const SECONDS   = /*[[${secondsLeft}]]*/ 300;
+
+window.addEventListener('load', function() {
+    Swal.fire({
+        toast: true, position: 'top', icon: 'info',
+        title: 'Demo OTP: ' + DEMO_OTP,
+        html: 'Enter this code to sign in',
+        showConfirmButton: false, timer: 8000, timerProgressBar: true,
+        background: '#1d0947', color: '#fff', iconColor: '#cfbcff'
+    });
+});
+
+const digits = ['d1','d2','d3','d4','d5','d6']
+    .map(function(id) { return document.getElementById(id); });
+const submitBtn = document.getElementById('otpSubmitBtn');
+
+digits.forEach(function(input, idx) {
+    input.addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '').slice(-1);
+        if (this.value) {
+            this.classList.add('filled');
+            this.classList.remove('error');
+            if (idx < digits.length - 1) digits[idx + 1].focus();
+        } else {
+            this.classList.remove('filled');
+        }
+        checkComplete();
+    });
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Backspace') {
+            if (!this.value && idx > 0) {
+                digits[idx - 1].value = '';
+                digits[idx - 1].classList.remove('filled');
+                digits[idx - 1].focus();
+            }
+            checkComplete();
+        }
+        if (e.key === 'ArrowLeft'  && idx > 0) digits[idx - 1].focus();
+        if (e.key === 'ArrowRight' && idx < digits.length - 1) digits[idx + 1].focus();
+    });
+    input.addEventListener('paste', function(e) {
+        e.preventDefault();
+        var paste = (e.clipboardData || window.clipboardData)
+            .getData('text').replace(/\D/g, '').substring(0, 6);
+        paste.split('').forEach(function(char, i) {
+            if (digits[i]) { digits[i].value = char; digits[i].classList.add('filled'); }
+        });
+        if (digits[paste.length - 1]) digits[paste.length - 1].focus();
+        checkComplete();
+    });
+});
+
+function checkComplete() {
+    submitBtn.disabled = !digits.every(function(d) { return d.value.length === 1; });
+}
+
+if (document.querySelector('.otp-error')) {
+    digits.forEach(function(d) { d.classList.add('error'); d.value = ''; d.classList.remove('filled'); });
+    digits[0].focus();
+}
+
+var remaining = Math.max(0, parseInt(SECONDS, 10));
+var countdownEl = document.getElementById('countdown');
+
+function updateCountdown() {
+    var mins = Math.floor(remaining / 60);
+    var secs = remaining % 60;
+    countdownEl.textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
+    if (remaining <= 30) countdownEl.classList.add('urgent');
+    if (remaining <= 0) {
+        clearInterval(timer);
+        Swal.fire({
+            title: 'Code Expired',
+            text: 'Your OTP has expired. Please sign in again.',
+            icon: 'warning',
+            confirmButtonColor: '#68519d',
+            confirmButtonText: 'Back to Login'
+        }).then(function() { window.location.href = '/login'; });
+    }
+    remaining--;
+}
+updateCountdown();
+var timer = setInterval(updateCountdown, 1000);
+
+document.getElementById('otpForm').addEventListener('submit', function() {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="material-symbols-outlined">progress_activity</span> Verifying...';
+});
+/*]]>*/
+</script>
+</body>
+</html>

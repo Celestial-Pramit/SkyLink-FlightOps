@@ -93,7 +93,9 @@ public class UserServiceImpl implements IUserService {
         validatePassword(rawPassword);
         user.setPassword(passwordEncoder.encode(rawPassword));
         user.setRoles(Set.of(resolveRole("ROLE_STAFF")));
-        user.setStatus(UserStatus.ACTIVE);
+        if (user.getStatus() == null) {
+            user.setStatus(UserStatus.ACTIVE);
+        }
         if (photo != null && !photo.isEmpty()) {
             user.setProfilePhoto(fileStorageService.store(photo, UPLOAD_SUBFOLDER));
         }

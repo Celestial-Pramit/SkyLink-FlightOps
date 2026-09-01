@@ -7,21 +7,85 @@
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <link rel="stylesheet" th:href="@{/css/auth.css}">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 <body>
 <div class="auth-page">
-    <div class="auth-brand"><span class="material-symbols-outlined brand-icon">person_add</span><h1 class="brand-title">Join SkyLink Ops</h1><p class="brand-subtitle">Staff access for fast, clear reception operations.</p></div>
+    <div class="auth-brand">
+        <span class="material-symbols-outlined brand-icon">person_add</span>
+        <h1 class="brand-title">Join SkyLink Ops</h1>
+        <p class="brand-subtitle">Staff access for fast, clear reception operations.</p>
+    </div>
     <div class="auth-form-panel">
         <div class="auth-card">
-            <h2 class="auth-card-title">Create staff account</h2><p class="auth-card-sub">Your administrator can approve access after registration.</p>
-            <form action="#" method="post" id="signupForm" onsubmit="return false;">
-                <div class="sky-form-group"><label class="sky-label" for="fullName">Full name</label><input class="sky-input" id="fullName" required></div>
-                <div class="sky-form-group"><label class="sky-label" for="signupEmail">Email address</label><input class="sky-input" id="signupEmail" type="email" required></div>
-                <div class="sky-form-group"><label class="sky-label" for="signupPassword">Password</label><div class="password-wrapper"><input class="sky-input" id="signupPassword" type="password" required><button class="password-toggle" type="button" id="signupPasswordToggle" aria-label="Show password"><span class="material-symbols-outlined">visibility</span></button></div><div class="strength-bar-wrap"><div class="strength-bar" id="strengthBar"></div></div><span class="strength-label" id="strengthLabel">Password strength</span></div>
-                <div class="checkbox-row"><input type="checkbox" id="signupTerms" required><label for="signupTerms">I agree to the <a href="#" onclick="showTerms(); return false;">Terms of Use</a>.</label></div>
-                <button class="btn-sky-primary" type="submit" style="width:100%;justify-content:center">Request access</button>
+            <h2 class="auth-card-title">Create staff account</h2>
+            <p class="auth-card-sub">Your administrator can approve access after registration.</p>
+
+            <div th:if="${signupError}" class="auth-alert error">
+                <span class="material-symbols-outlined">error</span>
+                <span th:text="${signupError}">Registration failed</span>
+            </div>
+
+            <form th:action="@{/signup}" method="post" th:object="${userDto}" id="signupForm">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                <div class="sky-form-group">
+                    <label class="sky-label" for="fullName">Full name</label>
+                    <input id="fullName" class="sky-input" th:field="*{fullName}"
+                           th:classappend="${#fields.hasErrors('fullName')} ? ' is-invalid'"
+                           placeholder="Your full name">
+                    <span class="sky-error-text" th:if="${#fields.hasErrors('fullName')}"
+                          th:errors="*{fullName}"></span>
+                </div>
+
+                <div class="sky-form-group">
+                    <label class="sky-label" for="signupEmail">Email address</label>
+                    <input id="signupEmail" class="sky-input" type="email" th:field="*{email}"
+                           th:classappend="${#fields.hasErrors('email')} ? ' is-invalid'"
+                           placeholder="you@example.com" autocomplete="email">
+                    <span class="sky-error-text" th:if="${#fields.hasErrors('email')}"
+                          th:errors="*{email}"></span>
+                </div>
+
+                <div class="sky-form-group">
+                    <label class="sky-label" for="signupPassword">Password</label>
+                    <div class="password-wrapper">
+                        <input id="signupPassword" class="sky-input" type="password" th:field="*{password}"
+                               th:classappend="${#fields.hasErrors('password')} ? ' is-invalid'"
+                               autocomplete="new-password">
+                        <button class="password-toggle" type="button" id="signupPasswordToggle"
+                                aria-label="Show password">
+                            <span class="material-symbols-outlined">visibility</span>
+                        </button>
+                    </div>
+                    <div class="strength-bar-wrap"><div class="strength-bar" id="strengthBar"></div></div>
+                    <span class="strength-label" id="strengthLabel">Password strength</span>
+                    <span class="sky-error-text" th:if="${#fields.hasErrors('password')}"
+                          th:errors="*{password}"></span>
+                </div>
+
+                <div class="sky-form-group">
+                    <label class="sky-label" for="signupPhone">Phone (optional)</label>
+                    <input id="signupPhone" class="sky-input" type="tel" th:field="*{phone}"
+                           th:classappend="${#fields.hasErrors('phone')} ? ' is-invalid'"
+                           placeholder="01XXXXXXXXX">
+                    <span class="sky-error-text" th:if="${#fields.hasErrors('phone')}"
+                          th:errors="*{phone}"></span>
+                </div>
+
+                <div class="checkbox-row">
+                    <input type="checkbox" id="signupTerms" required>
+                    <label for="signupTerms">I agree to the
+                        <a href="#" onclick="showTerms(); return false;">Terms of Use</a>.</label>
+                </div>
+
+                <button class="btn-sky-primary" type="submit" id="submitBtn"
+                        style="width:100%;justify-content:center">Request access</button>
             </form>
-            <p style="text-align:center;margin-top:var(--space-lg);font:var(--font-body-sm);color:var(--text-muted)"><a th:href="@{/login}">Back to sign in</a></p>
+
+            <p style="text-align:center;margin-top:var(--space-lg);font:var(--font-body-sm);color:var(--text-muted)">
+                <a th:href="@{/login}">Back to sign in</a>
+            </p>
         </div>
     </div>
 </div>
@@ -31,6 +95,7 @@
 <script>
     initPasswordToggle('signupPassword', 'signupPasswordToggle');
     initStrengthMeter('signupPassword', 'strengthBar', 'strengthLabel');
+    initSubmitLoading('signupForm', 'submitBtn', 'Submitting...');
 </script>
 </body>
 </html>

@@ -1,0 +1,52 @@
+/* OTP Verification Page */
+.otp-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--background);
+    padding: var(--space-lg);
+}
+.otp-card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--surface);
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--radius-lg);
+    padding: var(--space-2xl) var(--space-xl);
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+}
+.otp-shield {
+    width: 72px;
+    height: 72px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-lg);
+    box-shadow: 0 8px 24px rgba(104,81,157,.3);
+}
+.otp-shield .material-symbols-outlined { font-size: 36px; color: #fff; }
+.otp-title { font: var(--font-headline-sm); color: var(--primary); margin: 0 0 var(--space-xs); }
+.otp-subtitle { font: var(--font-body-sm); color: var(--on-surface-variant); margin: 0 0 var(--space-md); line-height: 1.5; }
+.otp-email-badge { display: inline-block; background: var(--surface-container); border: 1px solid var(--outline-variant); border-radius: var(--radius-full); padding: 4px 14px; font: var(--font-label-md); color: var(--secondary); margin-bottom: var(--space-xl); }
+.otp-input-row { display: flex; align-items: center; justify-content: center; gap: var(--space-sm); margin-bottom: var(--space-lg); }
+.otp-digit { width: 52px; height: 60px; text-align: center; font: 700 24px/1 var(--font-family); color: var(--primary); background: var(--surface-container-lowest); border: 2px solid var(--outline-variant); border-radius: var(--radius-md); outline: none; transition: border-color .15s, box-shadow .15s, transform .1s; }
+.otp-digit:focus { border-color: var(--secondary); box-shadow: 0 0 0 3px rgba(104,81,157,.15); transform: translateY(-2px); }
+.otp-digit.filled { border-color: var(--secondary); background: var(--secondary-fixed); color: var(--on-secondary-container); }
+.otp-digit.error { border-color: var(--error); animation: shake .4s both; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+.otp-dash { width: 12px; height: 2px; background: var(--outline-variant); border-radius: 2px; flex-shrink: 0; }
+.otp-error { display: flex; align-items: center; justify-content: center; gap: 6px; padding: var(--space-sm) var(--space-md); background: var(--error-container); border-radius: var(--radius-sm); color: var(--error); font: var(--font-label-md); margin-bottom: var(--space-md); }
+.otp-countdown { display: flex; align-items: center; justify-content: center; gap: 6px; font: var(--font-label-sm); color: var(--text-muted); margin-bottom: var(--space-lg); }
+.otp-countdown-time { font: 700 14px/1 'Courier New',monospace; color: var(--secondary); min-width: 36px; }
+.otp-countdown-time.urgent { color: var(--error); animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+.otp-submit-btn { width: 100%; padding: 13px; background: var(--secondary); color: var(--on-secondary); border: 0; border-radius: var(--radius-md); font: 700 14px/1 var(--font-family); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: var(--space-sm); transition: background .15s, transform .1s; margin-bottom: var(--space-md); }
+.otp-submit-btn:hover:not(:disabled) { background: #5a449a; transform: translateY(-1px); }
+.otp-submit-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.otp-back { font: var(--font-label-sm); color: var(--text-muted); }
+.otp-back a { color: var(--secondary); font-weight: 600; }
+.otp-demo-hint { margin-top: var(--space-lg); padding: var(--space-sm) var(--space-md); background: var(--badge-pending-bg); border: 1px solid var(--badge-pending-txt); border-radius: var(--radius-sm); font: var(--font-label-sm); color: var(--badge-pending-txt); display: flex; align-items: center; gap: 6px; }

@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
@@ -22,6 +23,11 @@ import javax.sql.DataSource;
 public class SecurityConfiguration {
 
     private final CustomAccessDeniedHandler accessDeniedHandler;
+
+    @Bean
+    public OtpEnforcementFilter otpEnforcementFilter() {
+        return new OtpEnforcementFilter();
+    }
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -48,10 +54,11 @@ public class SecurityConfiguration {
     public SecurityFilterChain filterChain(
              HttpSecurity http,
              CustomAuthenticationSuccessHandler successHandler,
-             PersistentTokenRepository tokenRepository) throws Exception {
+             PersistentTokenRepository tokenRepository,
+             OtpEnforcementFilter otpEnforcementFilter) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/signup", "/css/**", "/js/**", "/images/**", "/uploads/**", "/error/**").permitAll()
+                .requestMatchers("/login", "/signup", "/verify-otp", "/verify-otp/**", "/css/**", "/js/**", "/images/**", "/uploads/**", "/error/**").permitAll()
                 .requestMatchers("/superadmin/**").hasRole("SUPER_ADMIN")
                 .requestMatchers(
                     "/admin/users/**", "/reports/**",
@@ -59,6 +66,7 @@ public class SecurityConfiguration {
                     "/aircraft/add", "/aircraft/edit/**", "/aircraft/delete/**",
                     "/customers/delete/**"
                 ).hasRole("ADMIN")
+                .requestMatchers("/payment/**").hasAnyRole("ADMIN", "STAFF")
                 .requestMatchers(
                     "/dashboard", "/flights", "/flights/{id}",
                     "/aircraft", "/aircraft/{id}", "/bookings/**",
@@ -96,7 +104,9 @@ public class SecurityConfiguration {
                     .maximumSessions(1)
                     .expiredUrl("/login?expired=true")
                 )
-            );
+            )
+            .addFilterAfter(otpEnforcementFilter,
+                UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
