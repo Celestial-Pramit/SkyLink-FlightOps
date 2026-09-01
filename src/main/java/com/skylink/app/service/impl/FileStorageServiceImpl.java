@@ -3,7 +3,6 @@ package com.skylink.app.service.impl;
 import com.skylink.app.service.IFileStorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
@@ -21,7 +20,6 @@ import java.util.Set;
 import java.util.UUID;
 
 @Service
-@Profile("!prod")
 @Slf4j
 public class FileStorageServiceImpl implements IFileStorageService {
 
