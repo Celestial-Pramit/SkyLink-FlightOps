@@ -1,0 +1,278 @@
+/* ============================================================
+   seat-map.css — SkyLink Interactive Cabin Seat Map
+   Inspired by real airline booking UIs
+   ============================================================ */
+
+/* ── Wrapper ── */
+.seat-map-section {
+    margin-bottom: var(--space-md);
+}
+
+.seat-map-section .sky-label {
+    margin-bottom: var(--space-md);
+    display: block;
+}
+
+/* ── Cabin container — plane shape ── */
+.cabin-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+/* Plane nose SVG at top */
+.plane-nose {
+    width: 180px;
+    height: 80px;
+    margin-bottom: -2px;
+    display: block;
+}
+
+/* Main cabin body */
+.cabin-body {
+    width: 100%;
+    background: var(--surface-container-lowest);
+    border: 2px solid var(--outline-variant);
+    border-radius: 0 0 40px 40px;
+    padding: var(--space-md) var(--space-md) var(--space-xl);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Subtle cabin interior lines */
+.cabin-body::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 20px; right: 20px;
+    height: 1px;
+    background: linear-gradient(to right,
+        transparent, var(--outline-variant), transparent);
+}
+
+/* ── Legend ── */
+.seat-legend {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-lg);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--surface-container);
+    border-radius: var(--radius-full);
+}
+
+.seat-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font: var(--font-label-sm);
+    color: var(--on-surface-variant);
+}
+
+.seat-legend-dot {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.seat-legend-dot--available {
+    background: var(--surface-container-lowest);
+    border: 2px solid var(--outline-variant);
+}
+
+.seat-legend-dot--taken {
+    background: var(--surface-container-highest);
+    border: 2px solid var(--surface-container-high);
+}
+
+.seat-legend-dot--selected {
+    background: var(--secondary);
+    border: 2px solid var(--secondary);
+}
+
+/* ── Class zone ── */
+.cabin-zone {
+    margin-bottom: var(--space-md);
+}
+
+.cabin-zone:last-child { margin-bottom: 0; }
+
+.cabin-zone-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font: var(--font-label-md);
+    color: var(--on-surface-variant);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: var(--space-sm);
+    padding: 4px 0;
+    border-bottom: 1px dashed var(--outline-variant);
+}
+
+.cabin-zone-label .zone-icon {
+    font-size: 16px;
+    color: var(--secondary);
+}
+
+.cabin-zone-label .zone-price {
+    margin-left: auto;
+    font: var(--font-label-sm);
+    color: var(--secondary);
+    font-weight: 600;
+}
+
+/* ── Seat grid ── */
+.seat-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.seat-row-num {
+    width: 20px;
+    font: 500 10px/1 'Courier New', monospace;
+    color: var(--text-muted);
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.seat-aisle { width: 20px; flex-shrink: 0; }
+
+/* ── Individual seat button ── */
+.seat {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px 8px 5px 5px;
+    border: 2px solid var(--outline-variant);
+    background: var(--surface-container-lowest);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font: 600 10px/1 var(--font-family);
+    color: var(--on-surface-variant);
+    transition: transform .12s, box-shadow .12s, background .15s, border-color .15s;
+    position: relative;
+    flex-shrink: 0;
+    /* Seat headrest bump */
+    box-shadow: 0 -3px 0 0 var(--outline-variant);
+    user-select: none;
+}
+
+/* Seat sizes by class */
+.seat--first {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px 10px 6px 6px;
+    font-size: 11px;
+}
+
+.seat--business {
+    width: 40px;
+    height: 40px;
+    border-radius: 9px 9px 5px 5px;
+}
+
+/* Available — hover */
+.seat--available:hover {
+    border-color: var(--secondary);
+    color: var(--secondary);
+    transform: translateY(-2px);
+    box-shadow: 0 -3px 0 0 var(--secondary), 0 4px 8px rgba(104,81,157,.2);
+}
+
+/* Taken — greyed, not clickable */
+.seat--taken {
+    background: var(--surface-container-high);
+    border-color: var(--surface-container-high);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    box-shadow: 0 -3px 0 0 var(--surface-container-highest);
+    opacity: .65;
+}
+
+/* Selected — purple filled */
+.seat--selected {
+    background: var(--secondary);
+    border-color: var(--secondary);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 -3px 0 0 #4a3380, 0 4px 12px rgba(104,81,157,.4);
+}
+
+/* First class selected — gold accent */
+.seat--first.seat--selected {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border-color: var(--primary);
+    box-shadow: 0 -3px 0 0 #0f052a, 0 4px 12px rgba(29,9,71,.4);
+}
+
+/* ── Selected seats display ── */
+.selected-seats-display {
+    margin-top: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--secondary-fixed);
+    border: 1px solid var(--secondary-container);
+    border-radius: var(--radius-md);
+    display: none;
+    align-items: center;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+}
+
+.selected-seats-display.visible { display: flex; }
+
+.selected-seats-label {
+    font: var(--font-label-md);
+    color: var(--on-secondary-container);
+    flex-shrink: 0;
+}
+
+.selected-seat-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    background: var(--secondary);
+    color: #fff;
+    border-radius: var(--radius-full);
+    font: 700 11px/1 var(--font-family);
+}
+
+.selected-seats-count {
+    margin-left: auto;
+    font: var(--font-label-sm);
+    color: var(--on-secondary-container);
+}
+
+/* ── Error state — need to select seats ── */
+.seat-map-error {
+    display: none;
+    padding: 6px var(--space-md);
+    background: var(--error-container);
+    color: var(--error);
+    border-radius: var(--radius-sm);
+    font: var(--font-label-sm);
+    margin-top: var(--space-sm);
+    align-items: center;
+    gap: 5px;
+}
+
+.seat-map-error.visible { display: flex; }
+
+/* ── Scrollable on small screens ── */
+@media (max-width: 576px) {
+    .cabin-wrapper { max-width: 100%; overflow-x: auto; }
+    .cabin-body { border-radius: 0 0 24px 24px; padding: var(--space-md); }
+    .seat { width: 32px; height: 32px; font-size: 9px; }
+    .seat--first { width: 36px; height: 36px; }
+    .seat--business { width: 34px; height: 34px; }
+    .plane-nose { width: 120px; height: 55px; }
+}

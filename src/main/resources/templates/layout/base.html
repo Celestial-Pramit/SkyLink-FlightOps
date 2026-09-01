@@ -4,6 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${title ?: 'SkyLink Ops'}">SkyLink Ops</title>
+    <script>
+        (function() {
+            try {
+                if (localStorage.getItem('skylink-dark-mode') === 'true') {
+                    document.documentElement.classList.add('dark-pre');
+                    document.addEventListener('DOMContentLoaded', function() {
+                        document.body.classList.add('dark-mode');
+                        document.documentElement.classList.remove('dark-pre');
+                    });
+                }
+            } catch(e) {}
+        })();
+    </script>
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <link rel="stylesheet" th:href="@{/css/sidebar.css}">
     <link rel="stylesheet" th:href="@{/css/topbar.css}">

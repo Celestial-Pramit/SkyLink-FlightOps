@@ -1,19 +1,50 @@
-.reports-page { max-width: 1500px; }
-.report-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
-.report-heading h1 { margin-bottom:4px; }
-.report-heading p { color:var(--muted, #718096); margin:0; }
-.report-filters { display:flex; align-items:end; gap:14px; margin:20px 0; padding:16px; }
-.report-filters label { color:#596579; font-size:.78rem; font-weight:700; text-transform:uppercase; }
-.report-filters .sky-input { display:block; min-width:150px; margin-top:6px; }
-.report-kpis { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin-bottom:20px; }
-.report-kpi { display:flex; align-items:center; gap:14px; padding:20px; background:#fff; border:1px solid #e9e5f1; border-radius:12px; box-shadow:0 5px 18px rgba(43,35,75,.04); }
-.report-kpi > span { color:#68519d; font-size:32px; }
-.report-kpi strong { display:block; color:#29233b; font-size:1.5rem; }
-.report-kpi small { color:#718096; }
-.report-grid { display:grid; grid-template-columns:2fr 1fr; gap:20px; }
+.report-page-wrapper { max-width: 1400px; }
+.report-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:var(--space-md); margin-bottom:var(--space-lg); }
+.report-heading-text h1 { margin:0 0 4px; font:var(--font-display); color:var(--primary); }
+.report-heading-text p { margin:0; color:var(--on-surface-variant); font:var(--font-body-sm); }
+.report-heading-actions { display:flex; align-items:center; gap:var(--space-sm); flex-shrink:0; }
+.report-filters { display:flex; align-items:flex-end; flex-wrap:wrap; gap:var(--space-md); padding:var(--space-md) var(--space-lg); margin-bottom:var(--space-lg); background:var(--surface); border:1px solid var(--outline-variant); border-radius:var(--radius-md); }
+.report-filter-group { display:flex; flex-direction:column; gap:4px; }
+.report-filter-group label { color:var(--on-surface-variant); font:var(--font-label-md); letter-spacing:.05em; text-transform:uppercase; }
+.report-filter-actions { display:flex; gap:var(--space-sm); align-items:center; margin-left:auto; }
+.report-kpi-strip { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:var(--space-md); margin-bottom:var(--space-lg); }
+.report-kpi-card { position:relative; display:flex; align-items:center; gap:var(--space-md); overflow:hidden; padding:var(--space-md) var(--space-lg); background:var(--surface); border:1px solid var(--outline-variant); border-radius:var(--radius-md); transition:box-shadow .2s,transform .15s; }
+.report-kpi-card:hover { box-shadow:var(--shadow-md); transform:translateY(-2px); }
+.report-kpi-card::before { position:absolute; inset:0 0 auto; height:3px; content:''; }
+.report-kpi-card--bookings::before { background:var(--secondary); }
+.report-kpi-card--revenue::before { background:#22c55e; }
+.report-kpi-card--customers::before { background:#3b82f6; }
+.report-kpi-card--flights::before { background:#f59e0b; }
+.report-kpi-icon { display:flex; align-items:center; justify-content:center; width:44px; height:44px; flex-shrink:0; border-radius:var(--radius-md); font-size:24px; }
+.report-kpi-card--bookings .report-kpi-icon { background:#f5f3ff; color:var(--secondary); }
+.report-kpi-card--revenue .report-kpi-icon { background:#ecfdf5; color:#16a34a; }
+.report-kpi-card--customers .report-kpi-icon { background:#eff6ff; color:#2563eb; }
+.report-kpi-card--flights .report-kpi-icon { background:#fffbeb; color:#d97706; }
+.report-kpi-body { flex:1; min-width:0; }
+.report-kpi-value { overflow:hidden; margin-bottom:2px; color:var(--primary); font:700 28px/1 var(--font-family); text-overflow:ellipsis; white-space:nowrap; }
+.report-kpi-label { color:var(--on-surface-variant); font:var(--font-label-md); letter-spacing:.04em; text-transform:uppercase; }
+.report-grid { display:grid; grid-template-columns:2fr 1fr; gap:var(--space-lg); margin-bottom:var(--space-lg); }
+.report-card { padding:var(--space-lg); background:var(--surface); border:1px solid var(--outline-variant); border-radius:var(--radius-md); }
 .report-card--wide { grid-column:span 2; }
-.report-chart { height:290px; position:relative; }
-.report-chart--donut { height:290px; }
-.top-routes { margin-top:20px; }
-@media (max-width: 800px) { .report-grid { grid-template-columns:1fr; } .report-card--wide { grid-column:auto; } .report-filters { flex-wrap:wrap; } .report-kpis { grid-template-columns:1fr; } }
-@media print { @page { margin:12mm; } .sidebar,.topbar,.sidebar-overlay,.report-filters,.report-heading button { display:none !important; } .main-content { margin:0 !important; } .page-content { padding:0 !important; } .report-grid { grid-template-columns:1fr 1fr; } .report-card--wide { grid-column:span 2; } .sky-card,.report-kpi { break-inside:avoid; box-shadow:none; } .report-chart { height:230px; } }
+.report-card-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:var(--space-md); }
+.report-card-title { margin:0 0 2px; color:var(--primary); font:var(--font-title-lg); }
+.report-card-subtitle { margin:0; color:var(--on-surface-variant); font:var(--font-body-sm); }
+.report-chart-wrap { position:relative; height:280px; }
+.report-chart-wrap--donut { display:flex; align-items:center; justify-content:center; height:260px; }
+.donut-center-label { position:absolute; top:50%; left:50%; transform:translate(-50%,-60%); text-align:center; pointer-events:none; }
+.donut-center-label strong { display:block; color:var(--primary); font:700 28px/1 var(--font-family); }
+.donut-center-label span { color:var(--on-surface-variant); font:var(--font-label-sm); letter-spacing:.04em; text-transform:uppercase; }
+.top-routes-section { padding:var(--space-lg); margin-bottom:var(--space-lg); background:var(--surface); border:1px solid var(--outline-variant); border-radius:var(--radius-md); }
+.rank-medal { display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; font:700 12px/1 var(--font-family); }
+.rank-medal--1 { background:#fef3c7; color:#92400e; border:2px solid #f59e0b; }
+.rank-medal--2 { background:#f1f5f9; color:#475569; border:2px solid #94a3b8; }
+.rank-medal--3 { background:#fef2f2; color:#92400e; border:2px solid #fca5a5; }
+.rank-medal--other { background:var(--surface-container); color:var(--on-surface-variant); border:1px solid var(--outline-variant); }
+.route-code { color:var(--secondary); font:700 14px/1 var(--font-family); }
+.route-arrow { margin:0 4px; color:var(--outline); }
+.route-cities { display:block; margin-top:2px; color:var(--on-surface-variant); font:var(--font-label-sm); }
+.revenue-mono { color:var(--primary); font:700 13px/1 var(--font-family); text-align:right; }
+@media (max-width:1100px) { .report-kpi-strip { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:800px) { .report-grid { grid-template-columns:1fr; } .report-card--wide { grid-column:auto; } .report-filter-actions { margin-left:0; } }
+@media (max-width:480px) { .report-kpi-strip { grid-template-columns:1fr; } .report-heading { flex-direction:column; } }
+@media print { @page { margin:12mm; } .sidebar,.topbar,.sidebar-overlay,.report-filters,.report-heading-actions { display:none!important; } .main-content { margin:0!important; } .page-content { padding:0!important; } .report-grid { grid-template-columns:1fr 1fr; } .report-card--wide { grid-column:span 2; } .report-kpi-strip { grid-template-columns:repeat(4,1fr); } .report-card,.top-routes-section,.report-kpi-card { break-inside:avoid; box-shadow:none; } .report-chart-wrap { height:200px; } }

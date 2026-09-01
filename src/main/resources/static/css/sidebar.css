@@ -22,3 +22,19 @@
 .sidebar-overlay { display: none; position: fixed; z-index: 99; inset: 0; background: rgba(0,0,0,.5); }
 .sidebar-overlay.active { display: block; }
 @media (max-width: 768px) { .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } }
+
+/* ── Pending staff approval badge ── */
+.sidebar-pending-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    background: var(--error);
+    color: #fff;
+    border-radius: var(--radius-full);
+    font: 700 10px/1 var(--font-family);
+    margin-left: auto;
+    flex-shrink: 0;
+}

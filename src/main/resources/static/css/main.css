@@ -132,3 +132,186 @@ a:hover { color: var(--primary); }
 .dark-card .city-name { color: var(--primary-fixed-dim); font: var(--font-label-md); letter-spacing: .05em; text-transform: uppercase; }
 .dark-card .price { color: var(--secondary-fixed-dim); font: var(--font-headline-md); }
 @media (max-width: 768px) { .main-content { margin-left: 0; } .page-content { padding: var(--space-md); } .page-heading { display: block; } }
+
+/* ── Dark mode: full variable override on html.dark-pre (flash prevention) ── */
+html.dark-pre,
+html.dark-pre body {
+    --primary: #cfbcff;
+    --primary-container: #4a3a75;
+    --on-primary: #e9ddff;
+    --primary-fixed: #2a1a5e;
+    --primary-fixed-dim: #9b87d4;
+    --secondary: #b8a4e8;
+    --secondary-container: #4a3a75;
+    --on-secondary: #1a0e35;
+    --secondary-fixed: #2d1f58;
+    --secondary-fixed-dim: #9b87d4;
+    --on-secondary-container: #e9ddff;
+    --background: #0f0d13;
+    --surface: #1a1720;
+    --surface-container: #221f2a;
+    --surface-container-low: #1d1a25;
+    --surface-container-lowest: #130f1c;
+    --surface-container-high: #2a2635;
+    --surface-container-highest: #312d3e;
+    --on-surface: #e6e1e7;
+    --on-surface-variant: #cac4d0;
+    --text-muted: #938f99;
+    --outline: #938f99;
+    --outline-variant: #49454f;
+    --error: #ffb4ab;
+    --error-container: #7f0606;
+    --badge-confirmed-bg: #0d2818; --badge-confirmed-txt: #6fcf97;
+    --badge-pending-bg: #2d1f00;   --badge-pending-txt: #f2994a;
+    --badge-cancelled-bg: #2d0a0a; --badge-cancelled-txt: #eb5757;
+    --badge-boarded-bg: #0d1540;   --badge-boarded-txt: #7986cb;
+    --badge-completed-bg: #0a2310; --badge-completed-txt: #57c47a;
+    --badge-inflight-bg: #041828;  --badge-inflight-txt: #4fc3f7;
+    --badge-delayed-bg: #2d1200;   --badge-delayed-txt: #ffb74d;
+    --badge-active-bg: #0d2818;    --badge-active-txt: #6fcf97;
+    --badge-maintenance-bg: #2d1200; --badge-maintenance-txt: #ffb74d;
+    --badge-retired-bg: #1a1a1a;   --badge-retired-txt: #9e9e9e;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.4);
+    --shadow-md: 0 4px 12px rgba(0,0,0,.4);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,.5);
+    background: #0f0d13;
+    color: #e6e1e7;
+}
+
+/* Dark cards during preload phase */
+html.dark-pre .dark-card {
+    background: #2a1f52 !important;
+    color: #e9ddff !important;
+}
+
+/* ── Dark mode: runtime variable overrides (body.dark-mode) ── */
+body.dark-mode {
+    --primary: #cfbcff;
+    --primary-container: #4a3a75;
+    --on-primary: #e9ddff;
+    --primary-fixed: #2a1a5e;
+    --primary-fixed-dim: #9b87d4;
+    --secondary: #b8a4e8;
+    --secondary-container: #4a3a75;
+    --on-secondary: #1a0e35;
+    --secondary-fixed: #2d1f58;
+    --secondary-fixed-dim: #9b87d4;
+    --on-secondary-container: #e9ddff;
+    --background: #0f0d13;
+    --surface: #1a1720;
+    --surface-container: #221f2a;
+    --surface-container-low: #1d1a25;
+    --surface-container-lowest: #130f1c;
+    --surface-container-high: #2a2635;
+    --surface-container-highest: #312d3e;
+    --on-surface: #e6e1e7;
+    --on-surface-variant: #cac4d0;
+    --text-muted: #938f99;
+    --outline: #938f99;
+    --outline-variant: #49454f;
+    --error: #ffb4ab;
+    --error-container: #7f0606;
+    --badge-confirmed-bg: #0d2818; --badge-confirmed-txt: #6fcf97;
+    --badge-pending-bg: #2d1f00;   --badge-pending-txt: #f2994a;
+    --badge-cancelled-bg: #2d0a0a; --badge-cancelled-txt: #eb5757;
+    --badge-boarded-bg: #0d1540;   --badge-boarded-txt: #7986cb;
+    --badge-completed-bg: #0a2310; --badge-completed-txt: #57c47a;
+    --badge-inflight-bg: #041828;  --badge-inflight-txt: #4fc3f7;
+    --badge-delayed-bg: #2d1200;   --badge-delayed-txt: #ffb74d;
+    --badge-active-bg: #0d2818;    --badge-active-txt: #6fcf97;
+    --badge-maintenance-bg: #2d1200; --badge-maintenance-txt: #ffb74d;
+    --badge-retired-bg: #1a1a1a;   --badge-retired-txt: #9e9e9e;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.4);
+    --shadow-md: 0 4px 12px rgba(0,0,0,.4);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,.5);
+}
+
+body.dark-mode .dark-card {
+    background: #2a1f52;
+    color: #e9ddff;
+}
+body.dark-mode .dark-card .airport-code,
+body.dark-mode .dark-card .dark-card__flight-num,
+body.dark-mode .dark-card .dark-detail__value,
+body.dark-mode .dark-card .dark-detail__label,
+body.dark-mode .dark-card .city-name,
+body.dark-mode .dark-card .dark-card__eyebrow,
+body.dark-mode .dark-card .dark-card__duration,
+body.dark-mode .dark-card .dark-card__aircraft-badge,
+body.dark-mode .dark-card .summary-label,
+body.dark-mode .dark-card .summary-value,
+body.dark-mode .dark-card .summary-total-label,
+body.dark-mode .dark-card .summary-flight-info { color: #e9ddff; }
+body.dark-mode .dark-card .price { color: #d1bcff; }
+body.dark-mode .dark-card .dark-card__cta { background: #68519d; color: #fff; }
+body.dark-mode .sky-input,
+body.dark-mode .sky-select,
+body.dark-mode .sky-textarea {
+    background: var(--surface-container);
+    color: var(--on-surface);
+    border-color: var(--outline-variant);
+}
+body.dark-mode .topbar {
+    background: var(--surface);
+    border-bottom-color: var(--outline-variant);
+}
+body.dark-mode .sidebar {
+    background: #130f1c;
+    border-right-color: var(--outline-variant);
+}
+body.dark-mode .sky-table thead th { background: var(--surface-container-high); }
+body.dark-mode .sky-table tbody tr:hover { background: var(--surface-container); }
+body.dark-mode .topbar-search-input {
+    background: var(--surface-container);
+    color: var(--on-surface);
+    border-color: var(--outline-variant);
+}
+
+/* ── Dark mode toggle button ── */
+.dark-mode-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--radius-md);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
+}
+.dark-mode-toggle:hover {
+    background: var(--surface-container);
+    color: var(--secondary);
+    border-color: var(--secondary);
+}
+.dark-mode-toggle .material-symbols-outlined { font-size: 18px; }
+
+/* ── Skeleton shimmer ── */
+@keyframes shimmer {
+    0%   { background-position: -800px 0; }
+    100% { background-position:  800px 0; }
+}
+.skeleton-row td { padding: 10px var(--space-md) !important; }
+.skeleton-cell {
+    height: 14px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(90deg, var(--surface-container) 25%, var(--surface-container-high) 50%, var(--surface-container) 75%);
+    background-size: 800px 100%;
+    animation: shimmer 1.4s infinite;
+}
+.skeleton-cell--short  { width: 60%; }
+.skeleton-cell--medium { width: 80%; }
+.skeleton-cell--long   { width: 95%; }
+.skeleton-cell--badge  { width: 70px; height: 20px; border-radius: var(--radius-full); }
+
+/* ── Live search no-results row ── */
+.search-no-results {
+    display: none;
+    text-align: center;
+    padding: var(--space-xl);
+    color: var(--text-muted);
+    font: var(--font-body-sm);
+}

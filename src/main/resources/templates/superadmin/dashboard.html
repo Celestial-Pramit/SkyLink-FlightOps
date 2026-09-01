@@ -1,25 +1,179 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
 <head th:replace="~{layout/base :: head('Super Admin - SkyLink Ops')}"></head>
 <body>
 <div th:replace="~{layout/base :: layout(~{::main})}">
-    <main>
-        <link rel="stylesheet" th:href="@{/css/superadmin.css}">
-        <div class="page-heading"><div><h1>Super Admin Workspace</h1><p>Monitor and manage privileged operations accounts.</p></div><a class="btn-sky-primary" th:href="@{/superadmin/users/create}"><span class="material-symbols-outlined">person_add</span>Create admin</a></div>
-        <div class="stat-grid superadmin-stat-grid">
-            <div class="stat-card stat-card--purple"><div class="stat-card__header"><span class="material-symbols-outlined stat-card__icon">admin_panel_settings</span></div><div class="stat-card__value" th:text="${totalAdmins}">0</div><div class="stat-card__label">Admin accounts</div><div class="stat-card__sub"><span th:text="${activeAdmins}">0</span> active</div></div>
-            <div class="stat-card stat-card--blue"><div class="stat-card__header"><span class="material-symbols-outlined stat-card__icon">badge</span></div><div class="stat-card__value" th:text="${totalStaff}">0</div><div class="stat-card__label">Staff accounts</div><div class="stat-card__sub"><span th:text="${activeStaff}">0</span> active</div></div>
-             <div class="stat-card stat-card--green"><div class="stat-card__header"><span class="material-symbols-outlined stat-card__icon">verified_user</span></div><div class="stat-card__value" th:text="${activeAdmins + activeStaff}">0</div><div class="stat-card__label">Active operators</div><div class="stat-card__sub">Ready for operations</div></div>
-             <div class="stat-card stat-card--amber"><div class="stat-card__header"><span class="material-symbols-outlined stat-card__icon">person_add</span></div><div class="stat-card__value">+</div><div class="stat-card__label">Quick action</div><div class="stat-card__sub"><a th:href="@{/superadmin/users/create}">Create admin account</a></div></div>
+<main>
+    <link rel="stylesheet" th:href="@{/css/superadmin.css}">
+
+    <style>
+        .superadmin-grid { display: grid; grid-template-columns: 1fr 360px; gap: var(--space-lg); align-items: start; margin-top: var(--space-lg); }
+        .activity-feed-card { position: sticky; top: calc(64px + var(--space-lg)); }
+        .activity-feed { display: flex; flex-direction: column; gap: 0; max-height: 520px; overflow-y: auto; }
+        .activity-feed::-webkit-scrollbar { width: 4px; }
+        .activity-feed::-webkit-scrollbar-track { background: transparent; }
+        .activity-feed::-webkit-scrollbar-thumb { background: var(--outline-variant); border-radius: 4px; }
+        .activity-item { display: flex; gap: var(--space-sm); padding: var(--space-sm) 0; border-bottom: 1px solid var(--outline-variant); position: relative; }
+        .activity-item:last-child { border-bottom: 0; }
+        .activity-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 15px; }
+        .activity-icon--create   { background: var(--badge-confirmed-bg);  color: var(--badge-confirmed-txt); }
+        .activity-icon--cancel   { background: var(--badge-cancelled-bg);  color: var(--badge-cancelled-txt); }
+        .activity-icon--delete   { background: var(--error-container);     color: var(--error); }
+        .activity-icon--update   { background: var(--badge-boarded-bg);    color: var(--badge-boarded-txt); }
+        .activity-icon--status   { background: var(--badge-pending-bg);    color: var(--badge-pending-txt); }
+        .activity-icon--login    { background: var(--surface-container-high); color: var(--secondary); }
+        .activity-icon--default  { background: var(--surface-container);   color: var(--on-surface-variant); }
+        .activity-body { flex: 1; min-width: 0; }
+        .activity-actor { font: var(--font-label-md); color: var(--secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .activity-detail { font: var(--font-label-sm); color: var(--on-surface-variant); margin-top: 2px; line-height: 1.4; }
+        .activity-time { font: 500 10px/1 var(--font-family); color: var(--text-muted); white-space: nowrap; flex-shrink: 0; margin-top: 2px; }
+        .activity-empty { padding: var(--space-xl); text-align: center; color: var(--text-muted); font: var(--font-body-sm); }
+        .activity-badge { display: inline-block; padding: 1px 6px; border-radius: var(--radius-full); font: 700 9px/14px var(--font-family); text-transform: uppercase; letter-spacing: .04em; margin-right: 4px; vertical-align: middle; }
+        .activity-badge--booking  { background: var(--badge-boarded-bg);    color: var(--badge-boarded-txt); }
+        .activity-badge--user     { background: var(--secondary-container);  color: var(--on-secondary-container); }
+        .activity-badge--flight   { background: var(--badge-inflight-bg);    color: var(--badge-inflight-txt); }
+        .activity-badge--customer { background: var(--badge-confirmed-bg);   color: var(--badge-confirmed-txt); }
+        .activity-badge--aircraft { background: var(--badge-pending-bg);     color: var(--badge-pending-txt); }
+        @media (max-width: 1100px) { .superadmin-grid { grid-template-columns: 1fr; } .activity-feed-card { position: static; } }
+    </style>
+
+    <div class="page-heading">
+        <div>
+            <h1>Super Admin Workspace</h1>
+            <p>Monitor and manage privileged operations accounts.</p>
         </div>
+        <a class="btn-sky-primary" th:href="@{/superadmin/users/create}">
+            <span class="material-symbols-outlined">person_add</span>Create admin
+        </a>
+    </div>
+
+    <div class="stat-grid superadmin-stat-grid">
+        <div class="stat-card stat-card--purple">
+            <div class="stat-card__header"><span class="material-symbols-outlined stat-card__icon">admin_panel_settings</span></div>
+            <div class="stat-card__value" th:text="${totalAdmins}">0</div>
+            <div class="stat-card__label">Admin accounts</div>
+            <div class="stat-card__sub"><span th:text="${activeAdmins}">0</span> active</div>
+        </div>
+        <div class="stat-card stat-card--blue">
+            <div class="stat-card__header"><span class="material-symbols-outlined stat-card__icon">badge</span></div>
+            <div class="stat-card__value" th:text="${totalStaff}">0</div>
+            <div class="stat-card__label">Staff accounts</div>
+            <div class="stat-card__sub"><span th:text="${activeStaff}">0</span> active</div>
+        </div>
+        <div class="stat-card stat-card--green">
+            <div class="stat-card__header"><span class="material-symbols-outlined stat-card__icon">verified_user</span></div>
+            <div class="stat-card__value" th:text="${activeAdmins + activeStaff}">0</div>
+            <div class="stat-card__label">Active operators</div>
+            <div class="stat-card__sub">Ready for operations</div>
+        </div>
+        <div class="stat-card stat-card--amber">
+            <div class="stat-card__header"><span class="material-symbols-outlined stat-card__icon">person_add</span></div>
+            <div class="stat-card__value">+</div>
+            <div class="stat-card__label">Quick action</div>
+            <div class="stat-card__sub"><a th:href="@{/superadmin/users/create}">Create admin account</a></div>
+        </div>
+    </div>
+
+    <div class="superadmin-grid">
         <section class="sky-card">
-            <div class="sky-card-header"><div><h2 class="sky-card-title">Recent admin accounts</h2><p class="sky-card-subtitle">Newest privileged accounts</p></div><a class="btn-sky-ghost btn-sm" th:href="@{/superadmin/users(role='admin')}">Manage admins <span class="material-symbols-outlined">arrow_forward</span></a></div>
-            <div class="table-responsive"><table class="sky-table"><thead><tr><th>Account</th><th>Email</th><th>Status</th><th>Created</th></tr></thead><tbody>
-                <tr th:if="${#lists.isEmpty(recentAdmins)}"><td colspan="4"><div class="sky-empty"><span class="material-symbols-outlined">group_off</span><p>No admin accounts yet.</p></div></td></tr>
-                <tr th:each="user : ${recentAdmins}"><td><div class="user-cell"><span class="user-avatar" th:text="${user.initials}">AD</span><strong th:text="${user.fullName}">Admin</strong></div></td><td th:text="${user.email}">admin@example.com</td><td><span class="badge-status" th:classappend="${user.statusCssClass}" th:text="${user.status != null ? user.status : 'UNKNOWN'}">ACTIVE</span></td><td th:text="${user.createdAt != null ? #temporals.format(user.createdAt, 'dd MMM yyyy') : '-'}">-</td></tr>
-            </tbody></table></div>
+            <div class="sky-card-header">
+                <div>
+                    <h2 class="sky-card-title">Recent admin accounts</h2>
+                    <p class="sky-card-subtitle">Newest privileged accounts</p>
+                </div>
+                <a class="btn-sky-ghost btn-sm" th:href="@{/superadmin/users(role='admin')}">
+                    Manage admins
+                    <span class="material-symbols-outlined">arrow_forward</span>
+                </a>
+            </div>
+            <div class="table-responsive">
+                <table class="sky-table">
+                    <thead>
+                        <tr>
+                            <th>Account</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(recentAdmins)}">
+                            <td colspan="4">
+                                <div class="sky-empty">
+                                    <span class="material-symbols-outlined">group_off</span>
+                                    <p>No admin accounts yet.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:each="user : ${recentAdmins}">
+                            <td>
+                                <div class="user-cell">
+                                    <span class="user-avatar" th:text="${user.initials}">AD</span>
+                                    <strong th:text="${user.fullName}">Admin</strong>
+                                </div>
+                            </td>
+                            <td th:text="${user.email}">admin@example.com</td>
+                            <td>
+                                <span class="badge-status" th:classappend="${user.statusCssClass}"
+                                      th:text="${user.status != null ? user.status : 'UNKNOWN'}">ACTIVE</span>
+                            </td>
+                            <td th:text="${user.createdAt != null ? #temporals.format(user.createdAt, 'dd MMM yyyy') : '-'}">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </section>
-    </main>
+
+        <aside class="sky-card activity-feed-card">
+            <div class="sky-card-header" style="margin-bottom:var(--space-md)">
+                <div>
+                    <h2 class="sky-card-title" style="font:var(--font-title-lg);color:var(--primary)">Activity Log</h2>
+                    <p class="sky-card-subtitle">Last 50 system events</p>
+                </div>
+                <span class="material-symbols-outlined" style="color:var(--secondary);font-size:20px">history</span>
+            </div>
+
+            <div class="activity-feed">
+                <div th:if="${#lists.isEmpty(activityLogs)}" class="activity-empty">
+                    <span class="material-symbols-outlined" style="font-size:36px;display:block;margin-bottom:8px;opacity:.3">timeline</span>
+                    No activity recorded yet.
+                    Bookings, cancellations and status changes will appear here.
+                </div>
+
+                <div th:each="log : ${activityLogs}" class="activity-item">
+                    <div th:class="|activity-icon activity-icon--${
+                        log.action == 'CREATE' ? 'create' :
+                        log.action == 'CANCEL' ? 'cancel' :
+                        log.action == 'DELETE' ? 'delete' :
+                        log.action == 'STATUS_CHANGE' ? 'status' :
+                        log.action == 'UPDATE' ? 'update' : 'default'}|">
+                        <span class="material-symbols-outlined" th:text="${
+                            log.action == 'CREATE'        ? 'add_circle' :
+                            log.action == 'CANCEL'        ? 'cancel' :
+                            log.action == 'DELETE'        ? 'delete' :
+                            log.action == 'STATUS_CHANGE' ? 'swap_horiz' :
+                            log.action == 'UPDATE'        ? 'edit' :
+                            log.action == 'LOGIN'         ? 'login' : 'info'}">info</span>
+                    </div>
+
+                    <div class="activity-body">
+                        <div class="activity-actor" th:text="${log.actorName}">Admin</div>
+                        <div class="activity-detail">
+                            <span th:class="|activity-badge activity-badge--${log.entityType.toLowerCase()}|"
+                                  th:text="${log.entityType}">BOOKING</span>
+                            <span th:text="${log.detail}">Detail here</span>
+                        </div>
+                    </div>
+
+                    <div class="activity-time"
+                         th:text="${log.createdAt != null ? #temporals.format(log.createdAt, 'HH:mm') : '-'}">14:32</div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+</main>
 </div>
 </body>
 </html>

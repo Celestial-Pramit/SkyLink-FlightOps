@@ -6,7 +6,13 @@ const SkyAlert = {
             customClass: { popup: 'sky-toast' }
         });
     },
-    success(message) { return this.toast('success', message, 3000); },
+    success(message) {
+        var result = this.toast('success', message, 3000);
+        if (message && (message.includes('SKY-') || message.includes('confirmed'))) {
+            fireBookingConfetti();
+        }
+        return result;
+    },
     error(message) { return this.toast('error', message, 4000); },
     warning(message) { return this.toast('warning', message, 4000); },
     info(message) { return this.toast('info', message, 3000); },
@@ -56,4 +62,43 @@ function showPrivacy() {
         html: '<p>Customer data is confidential and may only be used for legitimate booking operations.</p>',
         confirmButtonColor: '#68519d', confirmButtonText: 'Got it'
     });
+}
+
+function fireBookingConfetti() {
+    if (typeof confetti !== 'undefined') {
+        runConfetti();
+        return;
+    }
+    var script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js';
+    script.onload = runConfetti;
+    document.head.appendChild(script);
+}
+
+function runConfetti() {
+    if (typeof confetti === 'undefined') return;
+    confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#68519d', '#cfbcff', '#1d0947', '#f59e0b', '#ffffff']
+    });
+    window.setTimeout(function () {
+        confetti({
+            particleCount: 40,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0, y: 0.65 },
+            colors: ['#68519d', '#cfbcff', '#22c55e']
+        });
+    }, 200);
+    window.setTimeout(function () {
+        confetti({
+            particleCount: 40,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1, y: 0.65 },
+            colors: ['#1d0947', '#f59e0b', '#cfbcff']
+        });
+    }, 400);
 }

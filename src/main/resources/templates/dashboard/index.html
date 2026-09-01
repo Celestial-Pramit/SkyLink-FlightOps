@@ -19,12 +19,39 @@
     <div class="main-content">
         <th:block th:replace="~{fragments/topbar :: topbar('Dashboard')}"></th:block>
         <th:block th:replace="~{fragments/flash :: flash}"></th:block>
+        <div th:if="${urgentFlights != null and !#lists.isEmpty(urgentFlights)}"
+             class="urgent-alert-banner" id="urgentAlertBanner">
+            <div class="urgent-alert-inner">
+                <span class="material-symbols-outlined urgent-alert-icon">warning</span>
+                <div class="urgent-alert-content">
+                    <strong>Departure Alert</strong>
+                    <span th:each="flight, stat : ${urgentFlights}">
+                        <a sec:authorize="hasRole('ADMIN')"
+                           th:href="@{/flights/edit/{id}(id=${flight.id})}"
+                           class="urgent-flight-link"
+                           th:text="${flight.flightNumber + ' (' + flight.originAirport.iataCode + ' -> ' + flight.destinationAirport.iataCode + ') - still SCHEDULED'}">BS-141</a>
+                        <a sec:authorize="hasRole('STAFF')"
+                           th:href="@{/flights/{id}(id=${flight.id})}"
+                           class="urgent-flight-link"
+                           th:text="${flight.flightNumber + ' (' + flight.originAirport.iataCode + ' -> ' + flight.destinationAirport.iataCode + ') - still SCHEDULED'}">BS-141</a>
+                        <span th:if="${!stat.last}"> · </span>
+                    </span>
+                    <span class="urgent-alert-hint" sec:authorize="hasRole('ADMIN')">- mark as BOARDING now</span>
+                    <span class="urgent-alert-hint" sec:authorize="hasRole('STAFF')">- review before departure</span>
+                </div>
+                <button class="urgent-alert-dismiss" type="button"
+                        onclick="document.getElementById('urgentAlertBanner').remove()"
+                        aria-label="Dismiss">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+        </div>
         <main class="page-content">
-            <div class="stat-grid">
-                <div class="stat-card stat-card--blue"><div class="stat-card__header"><div class="stat-card__icon"><span class="material-symbols-outlined">flight_takeoff</span></div><span class="stat-card__trend stat-card__trend--up">Active</span></div><div class="stat-card__value" th:text="${stats.totalFlights}">0</div><div class="stat-card__label">Total Flights</div><div class="stat-card__sub">All routes combined</div></div>
-                <div class="stat-card stat-card--green"><div class="stat-card__header"><div class="stat-card__icon"><span class="material-symbols-outlined">book_online</span></div><span class="stat-card__trend stat-card__trend--up">Today</span></div><div class="stat-card__value" th:text="${stats.bookingsToday}">0</div><div class="stat-card__label">Bookings Today</div><div class="stat-card__sub">Since midnight</div></div>
-                <div class="stat-card stat-card--amber"><div class="stat-card__header"><div class="stat-card__icon"><span class="material-symbols-outlined">group</span></div><span class="stat-card__trend">Registered</span></div><div class="stat-card__value" th:text="${stats.totalCustomers}">0</div><div class="stat-card__label">Total Customers</div><div class="stat-card__sub">All time</div></div>
-                <div class="stat-card stat-card--purple"><div class="stat-card__header"><div class="stat-card__icon"><span class="material-symbols-outlined">airplanemode_active</span></div><span class="stat-card__trend stat-card__trend--warn">Fleet</span></div><div class="stat-card__value" th:text="${stats.activeAircraft}">0</div><div class="stat-card__label">Active Aircraft</div><div class="stat-card__sub">Ready for service</div></div>
+            <div class="stat-grid" id="statGrid">
+                <div class="stat-card stat-card--blue" data-sort-id="flights"><div class="stat-card__header"><div class="stat-card__icon"><span class="material-symbols-outlined">flight_takeoff</span></div><span class="stat-card__trend stat-card__trend--up">Active</span></div><div class="stat-card__value" th:text="${stats.totalFlights}">0</div><div class="stat-card__label">Total Flights</div><div class="stat-card__sub">All routes combined</div></div>
+                <div class="stat-card stat-card--green" data-sort-id="bookings-today"><div class="stat-card__header"><div class="stat-card__icon"><span class="material-symbols-outlined">book_online</span></div><span class="stat-card__trend stat-card__trend--up">Today</span></div><div class="stat-card__value" th:text="${stats.bookingsToday}">0</div><div class="stat-card__label">Bookings Today</div><div class="stat-card__sub">Since midnight</div></div>
+                <div class="stat-card stat-card--amber" data-sort-id="customers"><div class="stat-card__header"><div class="stat-card__icon"><span class="material-symbols-outlined">group</span></div><span class="stat-card__trend">Registered</span></div><div class="stat-card__value" th:text="${stats.totalCustomers}">0</div><div class="stat-card__label">Total Customers</div><div class="stat-card__sub">All time</div></div>
+                <div class="stat-card stat-card--purple" data-sort-id="aircraft"><div class="stat-card__header"><div class="stat-card__icon"><span class="material-symbols-outlined">airplanemode_active</span></div><span class="stat-card__trend stat-card__trend--warn">Fleet</span></div><div class="stat-card__value" th:text="${stats.activeAircraft}">0</div><div class="stat-card__label">Active Aircraft</div><div class="stat-card__sub">Ready for service</div></div>
             </div>
 
             <div class="status-chips">
@@ -69,6 +96,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script th:src="@{/js/sweetalert-utils.js}"></script><script th:src="@{/js/main.js}"></script>
 <script th:inline="javascript">
     const chartLabels = /*[[${chartLabels}]]*/ '[]';
@@ -77,6 +105,33 @@
     const chart = document.getElementById('bookingTrendChart');
     if (chart) new Chart(chart, { type: 'line', data: { labels, datasets: [{ label: 'Bookings', data: counts, borderColor: '#68519d', backgroundColor: 'rgba(104,81,157,.08)', borderWidth: 2.5, pointRadius: 4, pointBackgroundColor: '#68519d', fill: true, tension: .4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } } });
     document.querySelectorAll('.stat-card__value').forEach(el => { const target = parseInt(el.textContent, 10); if (!target) return; let current = 0; const step = Math.max(1, Math.ceil(target / 40)); const timer = setInterval(() => { current = Math.min(current + step, target); el.textContent = current.toLocaleString(); if (current >= target) clearInterval(timer); }, 30); });
+
+    (function() {
+        const grid = document.getElementById('statGrid');
+        if (!grid || typeof Sortable === 'undefined') return;
+        const storageKey = 'skylink-kpi-order';
+        try {
+            const saved = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            saved.forEach(function(id) {
+                const card = grid.querySelector('[data-sort-id="' + id + '"]');
+                if (card) grid.appendChild(card);
+            });
+        } catch (e) {}
+        Sortable.create(grid, {
+            animation: 150,
+            handle: '.stat-card',
+            ghostClass: 'stat-card--dragging',
+            onEnd: function() {
+                const order = Array.from(grid.querySelectorAll('[data-sort-id]'))
+                    .map(function(card) { return card.dataset.sortId; });
+                try { localStorage.setItem(storageKey, JSON.stringify(order)); } catch (e) {}
+            }
+        });
+        grid.querySelectorAll('.stat-card').forEach(function(card) {
+            card.style.cursor = 'grab';
+            card.title = 'Drag to rearrange';
+        });
+    })();
 </script>
 </body>
 </html>

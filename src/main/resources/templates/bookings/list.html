@@ -38,7 +38,7 @@
 
             <form class="booking-search" method="get" th:action="@{/bookings}">
                 <span class="material-symbols-outlined">search</span>
-                <input class="sky-input" type="search" name="search"
+                <input id="bookingSearch" class="sky-input" type="search" name="search"
                        placeholder="Search reference, customer or flight..."
                        th:value="${search}">
                 <input type="hidden" name="status" th:if="${selectedStatus != null}" th:value="${selectedStatus}">
@@ -60,7 +60,7 @@
 
             <div th:unless="${#lists.isEmpty(bookings)}" class="sky-card booking-table-card">
                 <div class="table-responsive">
-                    <table class="sky-table">
+                    <table class="sky-table" id="bookingsTable">
                         <thead>
                         <tr>
                             <th>Reference</th><th>Customer</th><th>Flight</th><th>Route</th>
@@ -105,6 +105,9 @@
                                         th:data-id="${b.id}" th:data-reference="${b.bookingReference}" onclick="confirmDelete(this.dataset.id, this.dataset.reference)"><span class="material-symbols-outlined">delete</span></button>
                             </td>
                         </tr>
+                        <tr class="search-no-results">
+                            <td colspan="10">No bookings match your search.</td>
+                        </tr>
                         </tbody>
                     </table>
                 </div>
@@ -130,6 +133,9 @@ function confirmDelete(id, reference) {
         if (result.isConfirmed) { const form = document.getElementById('deleteForm'); form.action = '/bookings/delete/' + id; form.submit(); }
     });
 }
+document.addEventListener('DOMContentLoaded', function () {
+    initLiveSearch('bookingsTable', 'bookingSearch', [0, 1, 2, 3]);
+});
 </script>
 </body>
 </html>

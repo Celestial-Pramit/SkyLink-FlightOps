@@ -3,70 +3,143 @@
 <head th:replace="~{layout/base :: head('Reports - SkyLink Ops')}"></head>
 <body>
 <div th:replace="~{layout/base :: layout(~{::main})}">
-    <main>
+    <main class="report-page-wrapper">
+        <!-- The shared layout currently accepts page content only, so this link remains page-local. -->
         <link rel="stylesheet" th:href="@{/css/reports.css}">
-        <div class="page-heading report-heading">
-            <div>
+
+        <div class="report-heading">
+            <div class="report-heading-text">
                 <h1>Operations Reports</h1>
-                <p>Booking analytics and revenue overview.</p>
+                <p>Booking analytics, revenue performance and route insights</p>
             </div>
-            <button class="btn-sky-ghost" type="button" onclick="printReport()">
-                <span class="material-symbols-outlined">print</span> Print report
-            </button>
+            <div class="report-heading-actions">
+                <a th:href="@{/reports/export(days=${days},routeLimit=${routeLimit})}" class="btn-sky-ghost">
+                    <span class="material-symbols-outlined">download</span> Export CSV
+                </a>
+                <button class="btn-sky-ghost" type="button" onclick="printReport()">
+                    <span class="material-symbols-outlined">print</span> Print
+                </button>
+            </div>
         </div>
 
-        <form class="report-filters sky-card" method="get" th:action="@{/reports}">
-            <label>Period
-                <select name="days" class="sky-input">
+        <form class="report-filters" method="get" th:action="@{/reports}">
+            <div class="report-filter-group">
+                <label for="daysSelect">Period</label>
+                <select id="daysSelect" name="days" class="sky-input">
                     <option value="7" th:selected="${days == 7}">Last 7 days</option>
                     <option value="14" th:selected="${days == 14}">Last 14 days</option>
                     <option value="30" th:selected="${days == 30}">Last 30 days</option>
                 </select>
-            </label>
-            <label>Routes
-                <select name="routeLimit" class="sky-input">
+            </div>
+            <div class="report-filter-group">
+                <label for="routeSelect">Routes shown</label>
+                <select id="routeSelect" name="routeLimit" class="sky-input">
                     <option value="5" th:selected="${routeLimit == 5}">Top 5</option>
                     <option value="8" th:selected="${routeLimit == 8}">Top 8</option>
                     <option value="10" th:selected="${routeLimit == 10}">Top 10</option>
                 </select>
-            </label>
-            <button class="btn-sky-primary" type="submit">Apply filters</button>
+            </div>
+            <div class="report-filter-actions">
+                <button class="btn-sky-primary" type="submit">
+                    <span class="material-symbols-outlined">tune</span> Apply
+                </button>
+            </div>
         </form>
 
-        <div class="report-kpis">
-            <div class="report-kpi"><span class="material-symbols-outlined">book_online</span><div><strong th:text="${totalBookings}">0</strong><small>Total bookings</small></div></div>
-            <div class="report-kpi"><span class="material-symbols-outlined">payments</span><div><strong th:text="${'BDT ' + #numbers.formatDecimal(totalRevenue, 1, 'COMMA', 0, 'POINT')}">BDT 0</strong><small>Total revenue</small></div></div>
-            <div class="report-kpi"><span class="material-symbols-outlined">group</span><div><strong th:text="${totalCustomers}">0</strong><small>Total customers</small></div></div>
-            <div class="report-kpi"><span class="material-symbols-outlined">flight_takeoff</span><div><strong th:text="${totalFlights}">0</strong><small>Total flights</small></div></div>
+        <div class="report-kpi-strip">
+            <div class="report-kpi-card report-kpi-card--bookings">
+                <div class="report-kpi-icon"><span class="material-symbols-outlined">book_online</span></div>
+                <div class="report-kpi-body">
+                    <div class="report-kpi-value" id="kpiBookings" th:data-target="${totalBookings}" th:text="${totalBookings}">0</div>
+                    <div class="report-kpi-label">Total Bookings</div>
+                </div>
+            </div>
+            <div class="report-kpi-card report-kpi-card--revenue">
+                <div class="report-kpi-icon"><span class="material-symbols-outlined">payments</span></div>
+                <div class="report-kpi-body">
+                    <div class="report-kpi-value" th:text="${'BDT ' + #numbers.formatDecimal(totalRevenue ?: 0, 1, 'COMMA', 0, 'POINT')}">BDT 0</div>
+                    <div class="report-kpi-label">Total Revenue</div>
+                </div>
+            </div>
+            <div class="report-kpi-card report-kpi-card--customers">
+                <div class="report-kpi-icon"><span class="material-symbols-outlined">group</span></div>
+                <div class="report-kpi-body">
+                    <div class="report-kpi-value" id="kpiCustomers" th:data-target="${totalCustomers}" th:text="${totalCustomers}">0</div>
+                    <div class="report-kpi-label">Total Customers</div>
+                </div>
+            </div>
+            <div class="report-kpi-card report-kpi-card--flights">
+                <div class="report-kpi-icon"><span class="material-symbols-outlined">flight_takeoff</span></div>
+                <div class="report-kpi-body">
+                    <div class="report-kpi-value" id="kpiFlights" th:data-target="${totalFlights}" th:text="${totalFlights}">0</div>
+                    <div class="report-kpi-label">Total Flights</div>
+                </div>
+            </div>
         </div>
 
         <div class="report-grid">
-            <section class="sky-card report-card report-card--wide">
-                <div class="sky-card-header"><div><h3 class="sky-card-title">Bookings by day</h3><p class="sky-card-subtitle">Daily booking volume</p></div></div>
-                <div class="report-chart"><canvas id="bookingsByDayChart"></canvas></div>
+            <section class="report-card report-card--wide">
+                <div class="report-card-header">
+                    <div>
+                        <h3 class="report-card-title">Booking Trend</h3>
+                        <p class="report-card-subtitle" th:text="|Daily booking volume - last ${days} days|">Daily booking volume</p>
+                    </div>
+                    <span class="material-symbols-outlined report-card-icon">show_chart</span>
+                </div>
+                <div class="report-chart-wrap"><canvas id="trendChart"></canvas></div>
             </section>
-            <section class="sky-card report-card">
-                <div class="sky-card-header"><div><h3 class="sky-card-title">Status breakdown</h3><p class="sky-card-subtitle">All booking statuses</p></div></div>
-                <div class="report-chart report-chart--donut"><canvas id="statusChart"></canvas></div>
+            <section class="report-card">
+                <div class="report-card-header">
+                    <div>
+                        <h3 class="report-card-title">Status Breakdown</h3>
+                        <p class="report-card-subtitle">All booking statuses</p>
+                    </div>
+                    <span class="material-symbols-outlined report-card-icon">donut_large</span>
+                </div>
+                <div class="report-chart-wrap report-chart-wrap--donut">
+                    <canvas id="statusChart"></canvas>
+                    <div class="donut-center-label"><strong th:text="${totalBookings}">0</strong><span>Total</span></div>
+                </div>
             </section>
-            <section class="sky-card report-card">
-                <div class="sky-card-header"><div><h3 class="sky-card-title">Revenue by route</h3><p class="sky-card-subtitle">Confirmed, completed and boarded</p></div></div>
-                <div class="report-chart"><canvas id="revenueChart"></canvas></div>
+            <section class="report-card">
+                <div class="report-card-header">
+                    <div>
+                        <h3 class="report-card-title">Revenue by Route</h3>
+                        <p class="report-card-subtitle">Confirmed, boarded and completed only</p>
+                    </div>
+                    <span class="material-symbols-outlined report-card-icon">bar_chart</span>
+                </div>
+                <div class="report-chart-wrap"><canvas id="revenueChart"></canvas></div>
             </section>
         </div>
 
-        <section class="sky-card top-routes">
-            <div class="sky-card-header"><div><h3 class="sky-card-title">Top routes</h3><p class="sky-card-subtitle">Ranked by revenue</p></div></div>
+        <section class="top-routes-section">
+            <div class="report-card-header">
+                <div>
+                    <h3 class="report-card-title">Top Routes</h3>
+                    <p class="report-card-subtitle">Ranked by total revenue</p>
+                </div>
+            </div>
             <div class="table-responsive">
                 <table class="sky-table">
-                    <thead><tr><th>#</th><th>Route</th><th>Bookings</th><th class="text-end">Revenue</th></tr></thead>
+                    <thead><tr><th>Rank</th><th>Route</th><th>Bookings</th><th class="text-end">Revenue</th></tr></thead>
                     <tbody>
-                    <tr th:if="${#lists.isEmpty(topRoutes)}"><td colspan="4">No route data available.</td></tr>
-                    <tr th:each="route,stat : ${topRoutes}">
-                        <td th:text="${stat.count}">1</td>
-                        <td><strong th:text="${route.route}">DAC -> CGP</strong><small class="route-city" th:text="${route.fullRoute}">Dhaka -> Chittagong</small></td>
+                    <tr th:if="${#lists.isEmpty(topRoutes)}">
+                        <td colspan="4" class="report-empty">No route data available yet</td>
+                    </tr>
+                    <tr th:each="route, stat : ${topRoutes}">
+                        <td>
+                            <span th:if="${stat.count <= 3}" th:class="|rank-medal rank-medal--${stat.count}|" th:text="${stat.count}">1</span>
+                            <span th:if="${stat.count > 3}" class="rank-medal rank-medal--other" th:text="${stat.count}">4</span>
+                        </td>
+                        <td>
+                            <span class="route-code" th:text="${route.originIata}">DAC</span>
+                            <span class="route-arrow">-&gt;</span>
+                            <span class="route-code" th:text="${route.destinationIata}">CGP</span>
+                            <span class="route-cities" th:text="${route.originCity + ' -> ' + route.destinationCity}">Dhaka - Chittagong</span>
+                        </td>
                         <td th:text="${route.totalBookings}">0</td>
-                        <td class="text-end" th:text="${'BDT ' + #numbers.formatDecimal(route.totalRevenue, 1, 'COMMA', 0, 'POINT')}">BDT 0</td>
+                        <td class="revenue-mono" th:text="${'BDT ' + #numbers.formatDecimal(route.totalRevenue ?: 0, 1, 'COMMA', 0, 'POINT')}">BDT 0</td>
                     </tr>
                     </tbody>
                 </table>
@@ -82,37 +155,64 @@
     const statuses = JSON.parse(/*[[${statusBreakdown}]]*/ '[]');
     const money = value => 'BDT ' + Number(value || 0).toLocaleString('en-IN');
 
-    new Chart(document.getElementById('bookingsByDayChart'), {
-        type: 'line',
-        data: { labels: daily.map(x => x.label), datasets: [{
-            label: 'Bookings', data: daily.map(x => x.count), borderColor: '#68519d',
-            backgroundColor: 'rgba(104,81,157,.10)', fill: true, tension: .35
-        }]},
-        options: { responsive: true, maintainAspectRatio: false,
-            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }}},
-            plugins: { legend: { display: false }}}
-    });
-
-    new Chart(document.getElementById('revenueChart'), {
-        type: 'bar',
-        data: { labels: routes.map(x => x.route), datasets: [{
-            label: 'Revenue', data: routes.map(x => x.revenue), backgroundColor: '#58a68b', borderRadius: 5
-        }]},
-        options: { responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => money(ctx.raw) }}},
-            scales: { y: { beginAtZero: true, ticks: { callback: value => money(value) }}}}
-    });
-
-    new Chart(document.getElementById('statusChart'), {
-        type: 'doughnut',
-        data: { labels: statuses.map(x => x.status), datasets: [{
-            data: statuses.map(x => x.count), backgroundColor: statuses.map(x => x.cssColor)
-        }]},
-        options: { responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom' }}}
-    });
+    function animateCount(element, target) {
+        if (!element || Number.isNaN(target)) return;
+        const start = performance.now();
+        function step(now) {
+            const progress = Math.min((now - start) / 900, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            element.textContent = Math.floor(target * eased).toLocaleString();
+            if (progress < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    }
 
     function printReport() { window.print(); }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        ['kpiBookings', 'kpiCustomers', 'kpiFlights'].forEach(function (id) {
+            const element = document.getElementById(id);
+            if (element) animateCount(element, Number(element.dataset.target || 0));
+        });
+
+        if (typeof Chart === 'undefined') return;
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#49454f';
+
+        const trend = document.getElementById('trendChart');
+        if (trend) new Chart(trend, {
+            type: 'line',
+            data: { labels: daily.map(item => item.label), datasets: [{
+                label: 'Bookings', data: daily.map(item => item.count), borderColor: '#68519d',
+                backgroundColor: 'rgba(104,81,157,.12)', fill: true, tension: .4,
+                pointBackgroundColor: '#68519d', pointBorderColor: '#fff', pointBorderWidth: 2
+            }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } } } }
+        });
+
+        const revenue = document.getElementById('revenueChart');
+        if (revenue) new Chart(revenue, {
+            type: 'bar',
+            data: { labels: routes.map(item => item.route), datasets: [{
+                label: 'Revenue', data: routes.map(item => item.revenue),
+                backgroundColor: '#68519d', borderRadius: 6
+            }] },
+            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: context => ' ' + money(context.parsed.x) } } },
+                scales: { x: { beginAtZero: true, ticks: { callback: value => money(value) } }, y: { grid: { display: false } } } }
+        });
+
+        const status = document.getElementById('statusChart');
+        if (status) new Chart(status, {
+            type: 'doughnut',
+            data: { labels: statuses.map(item => item.status), datasets: [{
+                data: statuses.map(item => item.count), backgroundColor: statuses.map(item => item.cssColor),
+                borderWidth: 3, borderColor: '#fdf8fe'
+            }] },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { position: 'bottom' } } }
+        });
+    });
 </script>
 </body>
 </html>
