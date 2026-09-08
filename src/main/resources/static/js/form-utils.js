@@ -52,3 +52,31 @@ function initSubmitLoading(formId, btnId, loadingText) {
         button.innerHTML = '<span class="material-symbols-outlined">progress_activity</span> ' + (loadingText || 'Please wait...');
     });
 }
+
+function initFacultyQuickAccess(triggerId, trayId) {
+    var trigger = document.getElementById(triggerId);
+    var tray = document.getElementById(trayId);
+    if (!trigger || !tray) return;
+
+    trigger.addEventListener('click', function () {
+        var isOpen = tray.classList.toggle('open');
+        trigger.classList.toggle('open', isOpen);
+        trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+
+    var cards = tray.querySelectorAll('.boarding-pass');
+    cards.forEach(function (card) {
+        card.addEventListener('click', function () {
+            var emailInput = document.getElementById('email');
+            var passwordInput = document.getElementById('password');
+            if (!emailInput || !passwordInput) return;
+            emailInput.value = card.getAttribute('data-email');
+            passwordInput.value = card.getAttribute('data-password');
+            [emailInput, passwordInput].forEach(function (field) {
+                field.classList.remove('field-flash');
+                void field.offsetWidth;
+                field.classList.add('field-flash');
+            });
+        });
+    });
+}

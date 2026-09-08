@@ -13,7 +13,7 @@
         </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-lg);max-width:900px">
+    <div class="settings-grid" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-lg);max-width:900px">
 
         <!-- Profile card -->
         <section class="sky-card">
@@ -96,7 +96,7 @@
                 <span class="material-symbols-outlined" style="vertical-align:middle;margin-right:6px">shield</span>
                 Security Information
             </h2>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-lg)">
+            <div class="security-info-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-lg)">
                 <div style="text-align:center;padding:var(--space-md)">
                     <span class="material-symbols-outlined" style="font-size:36px;color:var(--badge-confirmed-txt);display:block;margin-bottom:8px">verified_user</span>
                     <strong style="display:block;color:var(--primary);font:var(--font-label-md)">Two-Factor Auth</strong>
@@ -119,7 +119,6 @@
     </div>
 </main>
 </div>
-<script th:src="@{/js/form-utils.js}"></script>
 <script>
     initPasswordToggle('newPassword', 'pwToggle1');
     initPasswordToggle('confirmPassword', 'pwToggle2');

@@ -232,6 +232,7 @@
 
 /* Flight form */
 .form-layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: var(--space-lg); align-items: start; }
+.form-layout>*{min-width:0}
 .form-section { padding: var(--space-lg); margin-bottom: var(--space-md); border: 1px solid var(--outline-variant); border-radius: var(--radius-md); background: var(--surface); }
 .form-section__header { display: flex; align-items: center; gap: 8px; padding-bottom: var(--space-sm); margin-bottom: var(--space-md); border-bottom: 1px solid var(--outline-variant); color: var(--primary); font: var(--font-label-md); letter-spacing: .05em; text-transform: uppercase; }
 .form-section__hint { margin-left: auto; color: var(--text-muted); font: var(--font-label-sm); letter-spacing: 0; text-transform: none; }
@@ -322,7 +323,7 @@
 .detail-time { color: var(--text-muted); font: var(--font-label-sm); }
 
 @media (max-width: 900px) {
-    .form-layout { grid-template-columns: 1fr; }
+    .form-layout { grid-template-columns: minmax(0, 1fr); }
     .form-side { position: static; order: -1; }
 }
 
@@ -334,7 +335,7 @@
 }
 
 @media (max-width: 600px) {
-    .form-row-2, .form-row-3 { grid-template-columns: 1fr; }
+    .form-row-2, .form-row-3 { grid-template-columns: minmax(0, 1fr); }
     .cal-header { align-items: stretch; }
     .cal-header-actions { flex-direction: column; }
     .cal-day-name { font-size: 10px; }

@@ -45,6 +45,6 @@
 .route-cities { display:block; margin-top:2px; color:var(--on-surface-variant); font:var(--font-label-sm); }
 .revenue-mono { color:var(--primary); font:700 13px/1 var(--font-family); text-align:right; }
 @media (max-width:1100px) { .report-kpi-strip { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-@media (max-width:800px) { .report-grid { grid-template-columns:1fr; } .report-card--wide { grid-column:auto; } .report-filter-actions { margin-left:0; } }
-@media (max-width:480px) { .report-kpi-strip { grid-template-columns:1fr; } .report-heading { flex-direction:column; } }
+@media (max-width:800px) { .report-grid { grid-template-columns:minmax(0,1fr); } .report-card--wide { grid-column:auto; } .report-filter-actions { margin-left:0; } }
+@media (max-width:480px) { .report-kpi-strip { grid-template-columns:minmax(0,1fr); } .report-heading { flex-direction:column; } }
 @media print { @page { margin:12mm; } .sidebar,.topbar,.sidebar-overlay,.report-filters,.report-heading-actions { display:none!important; } .main-content { margin:0!important; } .page-content { padding:0!important; } .report-grid { grid-template-columns:1fr 1fr; } .report-card--wide { grid-column:span 2; } .report-kpi-strip { grid-template-columns:repeat(4,1fr); } .report-card,.top-routes-section,.report-kpi-card { break-inside:avoid; box-shadow:none; } .report-chart-wrap { height:200px; } }

@@ -110,6 +110,43 @@
                 New staff member?
                 <a th:href="@{/signup}" style="font-weight:600">Create account</a>
             </p>
+
+            <div class="quick-access">
+                <button type="button" class="quick-access-trigger" id="quickAccessTrigger"
+                        aria-expanded="false" aria-controls="boardingPassTray">
+                    <span class="material-symbols-outlined">badge</span>
+                    Faculty Quick Access
+                    <span class="material-symbols-outlined quick-access-chevron">expand_more</span>
+                </button>
+                <div class="boarding-pass-tray" id="boardingPassTray">
+                    <div class="boarding-pass-tray-inner">
+                        <div class="boarding-pass" data-email="superadmin@skylink.com" data-password="Admin@1234">
+                            <div class="boarding-pass-code">SA</div>
+                            <div class="boarding-pass-info">
+                                <div class="boarding-pass-role">Super Admin</div>
+                                <div class="boarding-pass-email">superadmin@skylink.com</div>
+                            </div>
+                            <span class="material-symbols-outlined boarding-pass-arrow">arrow_forward</span>
+                        </div>
+                        <div class="boarding-pass" data-email="admin@skylink.com" data-password="Admin@1234">
+                            <div class="boarding-pass-code">AD</div>
+                            <div class="boarding-pass-info">
+                                <div class="boarding-pass-role">Admin</div>
+                                <div class="boarding-pass-email">admin@skylink.com</div>
+                            </div>
+                            <span class="material-symbols-outlined boarding-pass-arrow">arrow_forward</span>
+                        </div>
+                        <div class="boarding-pass" data-email="staff@skylink.com" data-password="Admin@1234">
+                            <div class="boarding-pass-code">ST</div>
+                            <div class="boarding-pass-info">
+                                <div class="boarding-pass-role">Staff</div>
+                                <div class="boarding-pass-email">staff@skylink.com</div>
+                            </div>
+                            <span class="material-symbols-outlined boarding-pass-arrow">arrow_forward</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -121,6 +158,7 @@
     initPasswordToggle('password', 'passwordToggle');
     initCapsLockWarning('password', 'capsWarning');
     initSubmitLoading('loginForm', 'submitBtn', 'Signing in...');
+    initFacultyQuickAccess('quickAccessTrigger', 'boardingPassTray');
 </script>
 </body>
 </html>

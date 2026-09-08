@@ -34,12 +34,14 @@ function initMobileSidebar() {
     var overlay   = document.getElementById('sidebarOverlay');
     if (!hamburger || !sidebar) return;
     hamburger.addEventListener('click', function () {
-        sidebar.classList.toggle('open');
-        if (overlay) overlay.classList.toggle('active');
+        var isOpen = sidebar.classList.toggle('open');
+        if (overlay) overlay.classList.toggle('active', isOpen);
+        document.body.classList.toggle('sidebar-open', isOpen);
     });
     if (overlay) overlay.addEventListener('click', function () {
         sidebar.classList.remove('open');
         overlay.classList.remove('active');
+        document.body.classList.remove('sidebar-open');
     });
 }
 

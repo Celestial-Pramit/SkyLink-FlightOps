@@ -1,7 +1,7 @@
-.topbar { position: sticky; z-index: 50; top: 0; display: flex; height: 64px; align-items: center; justify-content: space-between; padding: 0 var(--space-xl); background: var(--surface); border-bottom: 1px solid var(--outline-variant); box-shadow: var(--shadow-sm); }
-.topbar-left, .topbar-right { display: flex; align-items: center; gap: var(--space-md); }
-.topbar-greeting { color: var(--text-muted); font: var(--font-label-sm); }
-.topbar-title { margin: 0; color: var(--primary); font: var(--font-headline-sm); }
+.topbar { position: sticky; z-index: 50; top: 0; display: flex; min-height: 64px; align-items: center; justify-content: space-between; padding: 10px var(--space-xl); background: var(--surface); border-bottom: 1px solid var(--outline-variant); box-shadow: var(--shadow-sm); }
+.topbar-left, .topbar-right { display: flex; align-items: center; gap: var(--space-md); min-width: 0; }
+.topbar-greeting { display: block; overflow: hidden; color: var(--text-muted); font: var(--font-label-sm); text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.topbar-title { margin: 0; overflow: hidden; color: var(--primary); font: var(--font-headline-sm); text-overflow: ellipsis; white-space: nowrap; }
 .topbar-clock { display: flex; align-items: center; gap: 4px; color: var(--text-muted); font: var(--font-label-md); letter-spacing: .05em; }
 .topbar-search { position: relative; }
 .search-icon { position: absolute; top: 50%; left: 10px; color: var(--text-muted); font-size: 16px; transform: translateY(-50%); }
@@ -14,4 +14,6 @@
 .topbar-avatar { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 32px; height: 32px; color: var(--on-primary); background: var(--secondary); border-radius: 50%; font-size: 11px; font-weight: 700; }
 .topbar-user-name { color: var(--on-surface); font: var(--font-label-md); }
 .topbar-user-role { color: var(--text-muted); font: var(--font-label-sm); }
-@media (max-width: 768px) { .topbar { padding: 0 var(--space-md); } .topbar-clock, .topbar-search, .topbar-user-name, .topbar-user-role { display: none; } .topbar-profile { padding: 4px; border: 0; } }
+@media (max-width: 768px) { .topbar { padding: 8px var(--space-md); } .topbar-clock, .topbar-search, .topbar-user-name, .topbar-user-role { display: none; } .topbar-profile { padding: 4px; border: 0; } }
+#hamburgerBtn { display: none; }
+@media (max-width: 768px) { #hamburgerBtn { display: flex !important; } }

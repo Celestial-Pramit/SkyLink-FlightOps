@@ -57,5 +57,6 @@ function handleGPay(){Swal.fire({title:'Google Pay',text:'Demo payment selected.
 document.getElementById('paymentForm').addEventListener('submit',function(){document.getElementById('payBtn').classList.add('loading')});
 (function(){function tick(){let now=new Date(),el=document.getElementById('paymentClock');if(el)el.textContent=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')}tick();setInterval(tick,1000)})();
 </script>
+    <th:block th:replace="~{fragments/footer :: footer}"></th:block>
 </body>
 </html>
